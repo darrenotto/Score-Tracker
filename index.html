@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0f172a">
+<meta name="description" content="Fast score tracker and tournament scorer for badminton, volleyball, tennis, padel, table tennis, squash and basketball.">
+<title>ScoreTracker</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="adTop"></div>
+  <main id="app"></main>
+  <div id="adBottom"></div>
+  <footer class="foot"><a href="privacy.html">Privacy</a></footer>
+  <script type="module">
+    // Ads are mounted once, outside the app, so they aren't reloaded on every tap.
+    import { AdBanner } from './src/components/AdBanner.js';
+    document.getElementById('adTop').append(AdBanner('top'));
+    document.getElementById('adBottom').append(AdBanner('bottom'));
+    import('./src/app.js');
+  </script>
+  <noscript>ScoreTracker needs JavaScript.</noscript>
+</body>
+</html>
