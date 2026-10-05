@@ -72,7 +72,7 @@ function migrateQuick(q) {
 }
 
 // Screens laid out to fit the viewport (no page scroll; any long list scrolls inside its own area).
-const FIT_SCREENS = ['quick', 'quickSummary', 'tournSetup', 'tourn', 'tournPlay', 'tournSummary', 'courtSetup', 'courts', 'courtPlay', 'courtReady', 'courtSummary'];
+const FIT_SCREENS = ['sports', 'quick', 'quickSummary', 'tournSetup', 'tourn', 'tournPlay', 'tournSummary', 'courtSetup', 'courts', 'courtPlay', 'courtReady', 'courtSummary'];
 
 // Where to land on load: sign-in first, otherwise back to wherever there is something to resume.
 function initialScreen() {

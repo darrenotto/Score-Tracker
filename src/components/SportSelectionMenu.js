@@ -4,7 +4,7 @@ import { sportOrder, sportInfo } from '../logic/sportRules.js';
 
 // o: { resume: [{icon,title,sub,onClick}], onPick(sportKey) }
 export function SportSelectionMenu(o) {
-  return h('div', { class: 'screen menu' },
+  return h('div', { class: 'screen menu' + (o.resume.length ? ' has-resume' : '') },
     h('div', { class: 'page-head' },
       h('h1', { class: 'page-title' }, 'What are we playing?'),
       h('p', { class: 'page-sub' }, 'Pick a sport to get started.')),

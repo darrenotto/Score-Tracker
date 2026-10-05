@@ -564,3 +564,46 @@ button.trd-in { min-height: 44px; }
 .fact { display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
 .fact strong { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
 .sheet-actions { position: sticky; bottom: 0; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; background: var(--panel); }
+
+/* --- sport menu: every sport visible at once, no scrolling (body.fit-screen) ---
+   The grid takes whatever height is left and its rows share it equally; cards shrink to fit.
+   Tall screens: roomy vertical cards. Short screens: smaller tile, tighter text, rule line hidden. */
+.fit-screen .screen.menu { flex: 1 1 0; min-height: 0; gap: var(--sp-3); }
+.fit-screen .sport-grid { flex: 1 1 0; min-height: 0; grid-auto-rows: minmax(0, 1fr); }
+.fit-screen .sport-grid .sport-card { min-height: 0; overflow: hidden; }
+.fit-screen .resume-section { flex: 0 0 auto; max-height: 30%; overflow-y: auto; }
+.fit-screen .sport-card.resume { min-height: 52px; flex: 0 0 auto; }
+@media (min-width: 600px) { .fit-screen .sport-grid > .sport-card:last-child:nth-child(3n+1) { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: flex-start; } }
+@media (max-height: 740px) {
+  .fit-screen .screen.menu { gap: var(--sp-2); }
+  .fit-screen .page-title { font-size: 24px; }
+  .fit-screen .page-sub { font-size: 14px; }
+  .fit-screen .sport-grid { gap: var(--sp-2); }
+  .fit-screen .sport-grid .sport-card { padding: var(--sp-3); gap: var(--sp-2); }
+  .fit-screen .sport-grid .sport-tile { width: 36px; height: 36px; flex-basis: 36px; }
+  .fit-screen .sport-grid .sport-rule { display: none; }
+}
+@media (max-height: 600px) {
+  .fit-screen .page-sub { display: none; }
+  .fit-screen .sport-grid .sport-card { flex-direction: row; align-items: center; justify-content: flex-start; padding: var(--sp-2) var(--sp-3); }
+  .fit-screen .sport-grid .sport-tile { width: 32px; height: 32px; flex-basis: 32px; }
+  .fit-screen .sport-grid .sport-name { font-size: 14px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {           /* landscape phone: 4 across, two rows */
+  .fit-screen .page-head { flex-direction: row; align-items: baseline; gap: var(--sp-3); }
+  .fit-screen .page-title { font-size: 20px; }
+  .fit-screen .sport-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .fit-screen .sport-grid > .sport-card:last-child:nth-child(odd) { grid-column: auto; }
+  .fit-screen .sport-grid > .sport-card:last-child:nth-child(4n+3) { grid-column: span 2; }
+  .fit-screen .sport-grid > .sport-card:last-child:nth-child(3n+1) { grid-column: auto; }
+}
+.fit-screen .sport-grid > .sport-card:last-child:nth-child(n) { min-height: 0; }   /* beats the older odd-last-card min-height */
+/* with "pick up where you left off" cards above, the sports get less height: compact cards (rule line hidden) */
+.fit-screen .has-resume .sport-grid .sport-rule { display: none; }
+.fit-screen .has-resume .sport-grid .sport-tile { width: 36px; height: 36px; flex-basis: 36px; }
+.fit-screen .has-resume .sport-grid .sport-card { padding: var(--sp-2) var(--sp-3); }
+@media (max-height: 800px) {
+  .fit-screen .has-resume .sport-grid .sport-card { flex-direction: row; align-items: center; justify-content: flex-start; }
+  .fit-screen .has-resume .sport-grid .sport-name { font-size: 14px; }
+  .fit-screen .has-resume .page-sub { display: none; }
+}
