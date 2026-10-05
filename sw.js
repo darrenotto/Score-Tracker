@@ -1,4 +1,4 @@
-const CACHE = 'scoretracker-v10';
+﻿const CACHE = 'scoretracker-v11';
 const ASSETS = [
   './',
   'index.html',

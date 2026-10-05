@@ -87,12 +87,63 @@ function initialScreen() {
   return 'sports';
 }
 
+// Can this screen be shown right now? (Used when the phone's Back/Forward lands on an older history entry.)
+function canShow(s) {
+  if (s === 'quick') return !!quick && quick.status === 'playing';
+  if (s === 'quickSummary') return !!quick && quick.status === 'finished';
+  if (s === 'tourn' || s === 'tournPlay') return !!tournament && !tournament.finished;
+  if (s === 'tournSummary') return !!tournament && tournament.finished;
+  if (s === 'courts' || s === 'courtPlay' || s === 'courtReady') return !!session && session.status !== 'completed';
+  if (s === 'courtSummary') return !!session && session.status === 'completed';
+  return true;
+}
+
 function go(screen) {
+  const changed = screen !== nav;
   nav = screen;
   if (screen !== 'signin') { prefs.screen = screen; savePrefs(); }
+  if (changed) {                                                              // each screen is a history entry, so the phone's Back goes one screen back
+    try {
+      if (history.state && history.state.layer) history.replaceState({ screen }, '');   // a pop-up that just closed leaves its entry: reuse it
+      else history.pushState({ screen }, '');
+    } catch (e) {}
+  }
   render();
   app.scrollTop = 0;
 }
+
+try { history.replaceState({ screen: nav }, ''); } catch (e) {}
+// Pop-ups (sheets, dialogs, overlays) get their own history entry too, so Back closes the pop-up first
+// and a stray Back never leaves the app while one is open.
+const LAYER = '.modal-back, .sheet-back, .overlay';
+const isLayer = n => n.nodeType === 1 && n.matches(LAYER);
+const closedByBack = new WeakSet();
+new MutationObserver(list => {
+  list.forEach(m => {
+    m.addedNodes.forEach(n => { if (isLayer(n)) { try { history.pushState({ screen: nav, layer: true }, ''); } catch (e) {} } });
+    m.removedNodes.forEach(n => {
+      if (!isLayer(n) || closedByBack.has(n)) return;
+      if (history.state && history.state.layer) history.back();             // closed with a button: drop its entry
+    });
+  });
+}).observe(document.body, { childList: true });
+
+window.addEventListener('popstate', e => {
+  const layer = Array.from(document.querySelectorAll(LAYER)).pop();
+  if (layer) {                                                           // Back closes the top pop-up; the screen stays
+    closedByBack.add(layer);                                             // (the observer below runs later, so mark the node)
+    if (layer.classList.contains('sheet-back')) layer.dispatchEvent(new MouseEvent('click')); else layer.remove();
+    return;
+  }
+  let s = e.state && e.state.screen;
+  if (!s || !canShow(s)) s = 'sports';
+  if (!prefs.user && s !== 'signin') s = 'signin';
+  if (s === nav) return;
+  nav = s;
+  if (s !== 'signin') { prefs.screen = s; savePrefs(); }
+  render();
+  app.scrollTop = 0;
+});
 
 // ---------- shell ----------
 // home: the sport menu shows the ScoreTracker wordmark instead of a back button + title
