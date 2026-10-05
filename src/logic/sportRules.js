@@ -2,6 +2,18 @@
 // General casual-play summaries — leagues vary, so the popup says to check local rules.
 export const sportOrder = ['badminton', 'volleyball', 'tennis', 'tableTennis', 'padel', 'basketball', 'squash'];
 
+// Accent colour per sport as "r,g,b" (so CSS can tint it: rgba(var(--accent-rgb), .14)). Subtle identity only —
+// every card still uses the same ScoreTracker layout.
+export const sportAccent = {
+  badminton: '0,184,148',     // teal-green
+  volleyball: '249,115,22',   // orange
+  tennis: '34,160,90',        // green
+  tableTennis: '239,68,68',   // red
+  padel: '99,102,241',        // blue-purple
+  basketball: '234,88,12',    // deep orange
+  squash: '154,184,0',        // yellow-green
+};
+
 export const sportInfo = {
   badminton: {
     icon: '🏸', name: 'Badminton', tagline: 'First to 21',

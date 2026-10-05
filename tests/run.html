@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>ScoreTracker tests</title>
+<style>body{font:15px system-ui;margin:24px;max-width:760px}.ok{color:#0a7d5c}.bad{color:#b91c1c}pre{background:#f1f5f9;padding:12px;border-radius:8px;overflow:auto}</style></head>
+<body>
+<h1>Social + scheduling simulations</h1>
+<p id="status">Running…</p>
+<pre id="out"></pre>
+<script type="module">
+  import { run } from './socialSim.js';
+  const t0 = performance.now();
+  try {
+    const r = run();
+    window.__results = r;
+    const s = document.getElementById('status');
+    s.textContent = r.passed + ' / ' + r.total + ' checks passed in ' + Math.round(performance.now() - t0) + ' ms';
+    s.className = r.failed ? 'bad' : 'ok';
+    document.getElementById('out').textContent = JSON.stringify({ stats: r.stats, failures: r.fails.slice(0, 40) }, null, 2);
+  } catch (e) {
+    window.__results = { error: e.message + '\n' + e.stack };
+    document.getElementById('status').textContent = 'ERROR: ' + e.message;
+    document.getElementById('status').className = 'bad';
+  }
+</script>
+</body></html>

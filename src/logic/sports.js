@@ -27,5 +27,5 @@ export function getRules(key, target, noAd) {
   return rules;
 }
 
-// What one unit of a tournament is called: a set in tennis/padel, a round elsewhere.
-export const unitName = key => (sports[key] && sports[key].system === 'tennis' ? 'Set' : 'Round');
+// What one unit of a tournament series is called: a set in tennis/padel, a game elsewhere.
+export const unitName = key => (sports[key] && sports[key].system === 'tennis' ? 'Set' : 'Game');

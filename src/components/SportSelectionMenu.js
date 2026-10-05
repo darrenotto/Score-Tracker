@@ -5,10 +5,12 @@ import { sportOrder, sportInfo } from '../logic/sportRules.js';
 // o: { resume: [{icon,title,sub,onClick}], onPick(sportKey) }
 export function SportSelectionMenu(o) {
   return h('div', { class: 'screen menu' },
-    o.resume.length ? h('div', {},
-      h('h3', { class: 'section' }, 'Pick up where you left off'),
-      h('div', { class: 'sport-grid' }, o.resume.map(r => SportCard(Object.assign({ accent: true }, r))))) : null,
-    h('h2', { class: 'section' }, 'Choose Your Sport'),
+    h('div', { class: 'page-head' },
+      h('h1', { class: 'page-title' }, 'What are we playing?'),
+      h('p', { class: 'page-sub' }, 'Pick a sport to get started.')),
+    o.resume.length ? h('section', { class: 'resume-section', 'aria-label': 'Unfinished matches' },
+      h('h2', { class: 'eyebrow' }, 'Pick up where you left off'),
+      h('div', { class: 'resume-list' }, o.resume.map(r => SportCard(Object.assign({ resume: true }, r))))) : null,
     h('div', { class: 'sport-grid' }, sportOrder.map(k =>
-      SportCard({ icon: sportInfo[k].icon, title: sportInfo[k].name, sub: sportInfo[k].tagline, onClick: () => o.onPick(k) }))));
+      SportCard({ sport: k, title: sportInfo[k].name, sub: sportInfo[k].tagline, onClick: () => o.onPick(k) }))));
 }

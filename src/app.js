@@ -1,4 +1,4 @@
-import { h, clear, toast, openModal, confirmModal } from './dom.js';
+import { h, clear, toast, openModal, openSheet, confirmModal } from './dom.js';
 import { sports, getRules, defaultTarget } from './logic/sports.js';
 import { sportInfo } from './logic/sportRules.js';
 import { newGame, addPoint, undoPoint, scoreLine } from './logic/scoreLogic.js';
@@ -14,22 +14,26 @@ import { QuickMatchSetup, newQuickDraft } from './components/QuickMatchSetup.js'
 import { QuickMatchScoreScreen } from './components/QuickMatchScoreScreen.js';
 import { QuickMatchSummary, quickShareText } from './components/QuickMatchSummary.js';
 import { TournamentSetup, newDraft, draftComplete } from './components/TournamentSetup.js';
-import { TournamentMatchScreen } from './components/TournamentMatchScreen.js';
+import { TournamentChooser, openModeDetail } from './components/TournamentChooser.js';
+import { TournamentDashboard, gameCards } from './components/TournamentDashboard.js';
+import { ScoreStage } from './components/ScoreStage.js';
+import { WinnerView } from './components/WinnerView.js';
+import { MatchCard } from './components/MatchCard.js';
+import { CourtDashboard } from './components/CourtDashboard.js';
+import { CourtReady } from './components/CourtReady.js';
 import { TournamentSummary } from './components/TournamentSummary.js';
 import { SessionSetup, newSessionDraft } from './components/SessionSetup.js';
 import { newServeDraft } from './components/ServeSetup.js';
 import { tracksServe } from './logic/sports.js';
-import { CourtBoard } from './components/CourtBoard.js';
-import { PlayerQueue } from './components/PlayerQueue.js';
-import { RoundTimeline } from './components/RoundTimeline.js';
 import { SessionSummary, photoGroups, shareText as sessionShareText } from './components/SessionSummary.js';
 import { openPhotoCapture } from './components/PhotoCapture.js';
-import { openGalleryOverlay } from './components/PhotoGallery.js';
+import { openGalleryOverlay, openLightbox } from './components/PhotoGallery.js';
+import { serveInfo } from './logic/serveLogic.js';
 import { createSession } from './logic/courtAssignmentLogic.js';
 import { sessionReducer } from './logic/sessionReducer.js';
-import { matchOnCourt, courtById, matchById } from './logic/sessionState.js';
+import { matchOnCourt, courtById } from './logic/sessionState.js';
 import { photoCount as sessionPhotoCount } from './logic/matchCompletionLogic.js';
-import { hasPlayer, waitingPlayers, playingPlayers } from './logic/playerQueueLogic.js';
+import { hasPlayer } from './logic/playerQueueLogic.js';
 
 const app = document.getElementById('app');
 
@@ -45,6 +49,10 @@ let tournDraft = newDraft();
 let sessionDraft = newSessionDraft();
 let nav = initialScreen();
 let refocusAdd = false;                               // keep the keyboard open when adding several players
+let tournStep = 0, courtStep = 0;                      // current step of the setup wizards
+let courtTab = 'courts';                              // Courts | Queue | Standings
+let activeCourt = null;                            // the court being scored
+let courtReady = null;                              // { courtId, recap } shown right after a match is finished
 
 const savePrefs = () => store.savePrefs(prefs);
 const saveQuick = () => store.saveQuick(quick);
@@ -63,15 +71,18 @@ function migrateQuick(q) {
   return q;
 }
 
+// Screens laid out to fit the viewport (no page scroll; any long list scrolls inside its own area).
+const FIT_SCREENS = ['quick', 'quickSummary', 'tournSetup', 'tourn', 'tournPlay', 'tournSummary', 'courtSetup', 'courts', 'courtPlay', 'courtReady', 'courtSummary'];
+
 // Where to land on load: sign-in first, otherwise back to wherever there is something to resume.
 function initialScreen() {
   if (!prefs.user) return 'signin';
   const s = prefs.screen;
   if (s === 'quick' && quick && quick.status === 'playing') return s;
   if (s === 'quickSummary' && quick && quick.status === 'finished') return s;
-  if (s === 'tourn' && tournament && !tournament.finished) return s;
+  if ((s === 'tourn' || s === 'tournPlay') && tournament && !tournament.finished) return s;
   if (s === 'tournSummary' && tournament && tournament.finished) return s;
-  if (s === 'courts' && session && session.status !== 'completed') return s;
+  if ((s === 'courts' || s === 'courtPlay' || s === 'courtReady') && session && session.status !== 'completed') return 'courts';   // live scoring/ready screens reopen on the dashboard
   if (s === 'courtSummary' && session && session.status === 'completed') return s;
   return 'sports';
 }
@@ -84,9 +95,11 @@ function go(screen) {
 }
 
 // ---------- shell ----------
-function header(title, onBack) {
+// home: the sport menu shows the ScoreTracker wordmark instead of a back button + title
+// (the profile menu still leads back to sign-in).
+function header(title, onBack, home) {
   return Header({
-    title, onBack, user: prefs.user, sound: prefs.sound, dark: isDark(),
+    title, onBack, brand: !!home, user: prefs.user, sound: prefs.sound, dark: isDark(),
     onSound: () => { prefs.sound = !prefs.sound; savePrefs(); render(); },
     onTheme: () => { prefs.dark = !isDark(); savePrefs(); render(); },
     onProfile: openProfile,
@@ -112,12 +125,17 @@ function signOut() {
 
 function render() {
   document.documentElement.setAttribute('data-theme', isDark() ? 'dark' : 'light');
+  const themeMeta = document.querySelector('meta[name="theme-color"]');   // colours the phone's browser bar / PWA status bar
+  if (themeMeta) themeMeta.setAttribute('content', isDark() ? '#071522' : '#F4F7FB');
   const screens = {
     signin: signInScreen, sports: sportsScreen,
     quickSetup: quickSetupScreen, quick: quickScreen, quickSummary: quickSummaryScreen,
-    tournSetup: tournSetupScreen, tourn: tournScreen, tournSummary: tournSummaryScreen,
-    courtSetup: courtSetupScreen, courts: courtsScreen, courtSummary: courtSummaryScreen,
+    tournMode: tournModeScreen, tournSetup: tournSetupScreen, tourn: tournScreen, tournPlay: tournPlayScreen, tournSummary: tournSummaryScreen,
+    courtSetup: courtSetupScreen, courts: courtsScreen, courtPlay: courtPlayScreen, courtReady: courtReadyScreen, courtSummary: courtSummaryScreen,
   };
+  // Scoreboard-style screens fit the viewport instead of scrolling (CSS keys off this body class, so every
+  // other screen keeps its normal scrolling behaviour).
+  document.body.classList.toggle('fit-screen', FIT_SCREENS.indexOf(nav) >= 0);
   clear(app);
   screens[nav]().forEach(n => app.append(n));
   if (refocusAdd) {
@@ -146,7 +164,7 @@ function signInScreen() {
 // ---------- sport menu + rules ----------
 function sportsScreen() {
   return [
-    header('SCORETRACKER', () => go('signin')),
+    header(null, null, true),
     SportSelectionMenu({ resume: resumeItems(), onPick: openRules }),
   ];
 }
@@ -156,18 +174,18 @@ function resumeItems() {
   if (quick) {
     const g = quick.game, line = quick.nameA + ' ' + scoreLine(g) + ' ' + quick.nameB;
     items.push(quick.status === 'playing'
-      ? { icon: '▶️', title: 'Resume Quick Match', sub: sportName(quick.sport) + ' · ' + line, onClick: () => go('quick') }
-      : { icon: '🏁', title: 'Last Quick Match', sub: sportName(quick.sport) + ' · ' + line, onClick: () => go('quickSummary') });
+      ? { icon: 'play', title: 'Resume Quick Match', sub: sportName(quick.sport) + ' · ' + line, onClick: () => go('quick') }
+      : { icon: 'flag', title: 'Last Quick Match', sub: sportName(quick.sport) + ' · ' + line, onClick: () => go('quickSummary') });
   }
   if (tournament) {
     items.push(tournament.finished
-      ? { icon: '🏆', title: 'Tournament results', sub: tournament.name, onClick: () => go('tournSummary') }
-      : { icon: '▶️', title: 'Resume Tournament', sub: tournament.name + ' · ' + T.unitOf(tournament) + ' ' + T.currentRound(tournament).round + ' of ' + tournament.bestOf, onClick: () => go('tourn') });
+      ? { icon: 'trophy', title: 'Tournament results', sub: tournament.name, onClick: () => go('tournSummary') }
+      : { icon: 'play', title: 'Resume Tournament', sub: tournament.name + ' · ' + T.unitOf(tournament) + ' ' + T.currentRound(tournament).round + ' of ' + tournament.bestOf, onClick: () => go('tourn') });
   }
   if (session) {
     items.push(session.status === 'completed'
-      ? { icon: '🏆', title: 'Court session results', sub: session.name, onClick: () => go('courtSummary') }
-      : { icon: '▶️', title: 'Resume Court Session', sub: session.name + ' · ' + sportName(session.sport), onClick: () => go('courts') });
+      ? { icon: 'trophy', title: 'Court session results', sub: session.name, onClick: () => go('courtSummary') }
+      : { icon: 'play', title: 'Resume Court Session', sub: session.name + ' · ' + sportName(session.sport), onClick: () => go('courts') });
   }
   return items;
 }
@@ -177,8 +195,8 @@ function openRules(sport) {
   SportRulesPopup({
     sport,
     onQuick: begin('quickSetup', () => { quickDraft = newQuickDraft(); }),
-    onTournament: begin('tournSetup', () => { tournDraft = newDraft(); }),
-    onCourts: begin('courtSetup', () => { sessionDraft = newSessionDraft(); }),
+    onTournament: begin('tournMode', () => {}),
+    onCourts: begin('courtSetup', () => { sessionDraft = newSessionDraft(); courtStep = 0; }),
   });
 }
 
@@ -282,12 +300,28 @@ function quickSummaryScreen() {
 }
 
 // ---------- Tournament ----------
-function tournSetupScreen() {
+// A tournament is one match between two sides, played as a best-of series (games, or sets in tennis/padel).
+// Flow: setup wizard → dashboard (the hub) → full-screen scoring (same scoreboard as Quick Match) →
+// a result screen after each game → next game … → Champion.
+// Tournament: choose the kind first. Each card explains itself; only available modes can continue.
+function tournModeScreen() {
   return [
     header(setupTitle('Tournament'), backToRules),
+    TournamentChooser({
+      onPick: mode => openModeDetail(mode, m => {
+        if (m.id === 'series') { tournDraft = newDraft(); tournStep = 0; go('tournSetup'); }
+      }),
+    }),
+  ];
+}
+
+function tournSetupScreen() {
+  return [
+    header(setupTitle('Match series'), tournStep ? () => { tournStep--; render(); } : () => go('tournMode')),
     TournamentSetup({
-      draft: tournDraft, sport: ctx.sport, target: ctx.target, noAd: ctx.noAd, serve: ctx.serve,
-      onTarget: n => { ctx.target = n; }, onNoAd: v => { ctx.noAd = v; }, onRerender: render, onBack: backToRules, onStart: startTournament,
+      draft: tournDraft, sport: ctx.sport, target: ctx.target, noAd: ctx.noAd, serve: ctx.serve, step: tournStep,
+      onStep: n => { tournStep = n; render(); },
+      onTarget: n => { ctx.target = n; }, onNoAd: v => { ctx.noAd = v; }, onRerender: render, onBack: () => go('tournMode'), onStart: startTournament,
     }),
   ];
 }
@@ -302,6 +336,7 @@ function startTournament() {
       playersA: d.playersA.slice(0, n).map(s => s.trim()), playersB: d.playersB.slice(0, n).map(s => s.trim()),
     });
     persistTournament();
+    tournStep = 0;
     go('tourn');
   });
 }
@@ -313,23 +348,68 @@ function deleteTournament() {
   });
 }
 
+// "New Tournament" on the Champion screen: delete the finished one and start a fresh setup for the same sport.
+function newTournament() {
+  confirmModal({
+    title: 'Start a new tournament?', text: 'The finished tournament and its photos will be deleted.', yes: 'Start new', danger: false,
+    onYes: () => {
+      const old = tournament;
+      ctx = { sport: old.sport, target: old.target, noAd: old.noAd, serve: newServeDraft() };
+      tournament = null; store.clearTournamentStorage();
+      tournDraft = newDraft(); tournStep = 0;
+      go('tournSetup');
+    },
+  });
+}
+
+const tournTitle = () => sportInfo[tournament.sport].name.toUpperCase() + ' | Tournament';
+
 function tournScreen() {
   const t = tournament;
   return [
-    header(sportInfo[t.sport].name.toUpperCase() + ' | Tournament', () => leaveTo('sports', 'Your tournament is saved — resume it from the sport menu.')),
-    TournamentMatchScreen(t, {
-      onTap: tournamentTap, onPhoto: takeTournamentPhoto, onUndo: tournamentUndo, onAdvance: advance, onClear: deleteTournament,
-      onGallery: () => openGalleryOverlay(() => T.photoGroups(tournament), deleteTournamentPhoto),
+    header(tournTitle(), () => go('sports')),
+    TournamentDashboard(t, {
+      onContinue: () => go('tournPlay'), onNext: advance, onView: openGameResult, onAll: openAllGames,
+      onPhotos: () => openGalleryOverlay(() => T.photoGroups(tournament), deleteTournamentPhoto), onDelete: deleteTournament,
     }),
   ];
+}
+
+// Full-screen scoring for the current game, or its result once someone has won it.
+function tournPlayScreen() {
+  const t = tournament, r = T.currentRound(t), s = T.seriesScore(t.rounds), unit = T.unitOf(t);
+  const A = T.teamName(t, 'A'), B = T.teamName(t, 'B');
+  const hdr = header(tournTitle(), () => go('tourn'));
+
+  if (r.winner) {
+    return [hdr, WinnerView({
+      label: unit.toUpperCase() + ' COMPLETE', side: r.winner,
+      name: T.teamName(t, r.winner), players: T.playersText(t, r.winner),
+      score: scoreLine(r, ' – '), series: 'Series  ' + s.A + ' — ' + s.B,
+      meta: A + ' vs ' + B + '  ·  Best of ' + t.bestOf,
+      photos: r.photos,
+      primary: t.matchWinner ? { label: 'See Champion', icon: 'trophy', onClick: advance } : { label: 'Start Next ' + unit, icon: 'arrow', onClick: advance },
+      secondary: [{ label: 'Overview', icon: 'back', onClick: () => go('tourn') }, { label: 'Photo', icon: 'camera', onClick: takeTournamentPhoto }],
+      link: { label: 'Wrong tap? Undo last point', onClick: tournamentUndo },
+    })];
+  }
+  return [hdr, ScoreStage({
+    rules: T.rulesOf(t), game: r, nameA: A, nameB: B, subA: T.playersText(t, 'A'), subB: T.playersText(t, 'B'),
+    serve: T.serveFor(t), unit: unit + ' ' + r.round + ' of ' + t.bestOf + '  ·  ' + s.A + '–' + s.B, onTap: tournamentTap,
+    controls: [
+      { label: 'Undo', icon: 'undo', onClick: tournamentUndo, disabled: !r.log.length, aria: 'Undo last point' },
+      { label: 'Photo', icon: 'camera', onClick: takeTournamentPhoto, aria: 'Take photo' },
+      { label: 'Photos (' + T.photoCount(t) + ')', icon: 'image', onClick: () => openGalleryOverlay(() => T.photoGroups(tournament), deleteTournamentPhoto), aria: 'View photos' },
+    ],
+  })];
 }
 
 function tournamentTap(side) {
   if (T.currentRound(tournament).winner) return;
   tournament = T.scorePoint(tournament, side);
-  beep(prefs.sound, side === 'A' ? 660 : 520); buzz(25);
+  const won = !!T.currentRound(tournament).winner;
+  beep(prefs.sound, won ? 880 : side === 'A' ? 660 : 520, won ? 250 : 70); buzz(won ? [80, 60, 80] : 25);
   persistTournament(); render();
-  if (T.currentRound(tournament).winner) showRoundWin();
 }
 
 function tournamentUndo() {
@@ -337,32 +417,43 @@ function tournamentUndo() {
   buzz(15); persistTournament(); render();
 }
 
+// After a finished game: the next game, or the Champion screen when the series is decided.
 function advance() {
   if (tournament.matchWinner) {
     tournament = T.finishTournament(tournament);
     persistTournament(); go('tournSummary');
   } else {
     tournament = T.advanceRound(tournament);
-    persistTournament(); render();
+    persistTournament(); go('tournPlay');
   }
 }
 
-function showRoundWin() {
-  const t = tournament, r = T.currentRound(t), s = T.seriesScore(t.rounds);
-  const m = openModal(
-    h('h2', {}, T.teamName(t, r.winner) + ' wins ' + T.unitOf(t).toLowerCase() + ' ' + r.round + '!'),
-    h('p', {}, T.teamName(t, 'A') + ' ' + scoreLine(r, ' – ') + ' ' + T.teamName(t, 'B') + '  ·  ' + T.unitOf(t) + 's ' + s.A + '–' + s.B),
-    h('div', { class: 'row' },
-      h('button', { onclick: () => { m.close(); tournamentUndo(); } }, 'Undo last'),
-      h('button', { class: 'primary', onclick: () => { m.close(); advance(); } }, t.matchWinner ? 'See results 🏆' : 'Next ' + T.unitOf(t).toLowerCase() + ' →')));
-  beep(prefs.sound, 880, 250); buzz([80, 60, 80]);
+// "All games": every other game of the series as one-line cards, one level deeper than the dashboard.
+function openAllGames() {
+  const t = tournament;
+  openSheet('All ' + T.unitOf(t).toLowerCase() + 's', gameCards(t, openGameResult));
+}
+
+// "View Result" on the dashboard: one level deeper, in a bottom sheet.
+function openGameResult(n) {
+  const t = tournament, r = t.rounds.filter(x => x.round === n)[0];
+  if (!r) return;
+  const sheet = openSheet(T.unitOf(t) + ' ' + n + ' result',
+    MatchCard({
+      title: T.unitOf(t).toUpperCase() + ' ' + n, status: 'completed', variant: 'compact',
+      a: { name: T.teamName(t, 'A'), sub: T.playersText(t, 'A'), score: String(r.scoreA), win: r.winner === 'A' },
+      b: { name: T.teamName(t, 'B'), sub: T.playersText(t, 'B'), score: String(r.scoreB), win: r.winner === 'B' },
+      note: T.teamName(t, r.winner) + ' won ' + scoreLine(r, ' – ') + '.',
+    }),
+    r.photos.length ? h('div', { class: 'qm-thumbs' }, r.photos.map((src, i) =>
+      h('button', { type: 'button', class: 'qm-thumb', 'aria-label': 'View photo ' + (i + 1), onclick: () => openLightbox(src, () => { sheet.close(); deleteTournamentPhoto(n, i); }) }, h('img', { src, alt: '' })))) : null);
 }
 
 function tournSummaryScreen() {
   return [
-    header(sportInfo[tournament.sport].name.toUpperCase() + ' | Tournament', () => go('sports')),
+    header(tournTitle(), () => go('sports')),
     TournamentSummary({
-      t: tournament, onMenu: () => go('sports'), onDelete: deleteTournament,
+      t: tournament, onMenu: () => go('sports'), onNew: newTournament, onDelete: deleteTournament,
       onShare: () => share(T.shareText(tournament)), onDeletePhoto: deleteTournamentPhoto,
     }),
   ];
@@ -387,6 +478,8 @@ function deleteTournamentPhoto(round, idx) {
 
 // ---------- Courts (drop-in sessions) ----------
 // Every change goes through sessionReducer; if storage refuses the write we roll back.
+// Flow: setup wizard → Courts / Queue / Standings dashboard → full-screen court scoring → match result →
+// "Court ready" (the next group is already assigned) → Start Match …
 function dispatch(action) {
   const before = session;
   session = sessionReducer(session, action);
@@ -399,9 +492,10 @@ function dispatch(action) {
 
 function courtSetupScreen() {
   return [
-    header(setupTitle('Courts'), backToRules),
+    header(setupTitle('Courts'), courtStep ? () => { courtStep--; render(); } : backToRules),
     SessionSetup({
-      draft: sessionDraft, sport: ctx.sport, target: ctx.target, noAd: ctx.noAd, serve: ctx.serve,
+      draft: sessionDraft, sport: ctx.sport, target: ctx.target, noAd: ctx.noAd, serve: ctx.serve, step: courtStep,
+      onStep: n => { courtStep = n; render(); },
       onTarget: n => { ctx.target = n; }, onNoAd: v => { ctx.noAd = v; }, onRerender: render, onBack: backToRules, onStart: startSession,
     }),
   ];
@@ -413,10 +507,11 @@ function startSession() {
   for (let i = 0; i < d.courts; i++) courtNames.push('');
   confirmReplace(session && (session.status !== 'completed' || sessionPhotoCount(session)), 'court session', () => {
     session = createSession({
-      name: d.name.trim(), sport: ctx.sport, target: ctx.target, noAd: ctx.noAd, serve: serveConfig(), format: d.format,
+      name: d.name.trim() || 'Court session', sport: ctx.sport, target: ctx.target, noAd: ctx.noAd, serve: serveConfig(), format: d.format,
       courtNames, playerNames: d.players.split('\n'),
     });
     store.saveSession(session);
+    courtStep = 0; courtTab = 'courts';
     go('courts');
   });
 }
@@ -428,74 +523,102 @@ function deleteSession() {
   });
 }
 
+const courtsTitle = () => sportInfo[session.sport].name.toUpperCase() + ' | Courts';
+
 function courtsScreen() {
   const t = session;
   return [
-    header(sportInfo[t.sport].name.toUpperCase() + ' | Courts', () => leaveTo('sports', 'Your session is saved — resume it from the sport menu.')),
-    h('div', { class: 'screen courts' },
-      h('div', { class: 'match-info' },
-        h('strong', {}, t.name),
-        h('span', { class: 'series' }, playingPlayers(t).length + ' playing · ' + waitingPlayers(t).length + ' waiting')),
-      RoundTimeline(t),
-      CourtBoard(t, { tap: courtTap, undo: id => dispatch({ type: 'UNDO', courtId: id }), finish: finishCourtMatch, photo: takeCourtPhoto, toggle: id => dispatch({ type: 'TOGGLE_COURT', courtId: id }), swapServe: id => dispatch({ type: 'SWAP_SERVE', courtId: id }) }),
-      PlayerQueue({
-        t,
-        onAdd: name => {
-          refocusAdd = true;
-          if (hasPlayer(t, name)) { toast(name.trim() + ' is already in the session'); render(); return; }
-          dispatch({ type: 'ADD_PLAYER', name });
-        },
-        onRemove: id => dispatch({ type: 'REMOVE_PLAYER', id }),
-      }),
-      h('div', { class: 'actions' },
-        h('button', { onclick: () => dispatch({ type: 'ADD_COURT' }) }, '+ Court'),
-        h('button', { onclick: () => openGalleryOverlay(() => photoGroups(session), (seq, idx) => dispatch({ type: 'DELETE_PHOTO', matchId: 'match_' + seq, index: idx })) }, '🖼 Photos (' + sessionPhotoCount(t) + ')'),
-        h('button', { class: 'danger', onclick: () => confirmModal({
-          title: 'End session?', text: 'Standings are kept. Any match still in progress is discarded.', yes: 'End session',
-          onYes: () => { dispatch({ type: 'END_SESSION' }); go('courtSummary'); } }) }, 'End'))),
+    header(courtsTitle(), () => go('sports')),
+    CourtDashboard(t, {
+      tab: courtTab, onTab: tab => { courtTab = tab; render(); }, photoCount: sessionPhotoCount(t),
+      onContinue: id => { activeCourt = id; go('courtPlay'); },
+      onToggle: id => dispatch({ type: 'TOGGLE_COURT', courtId: id }),
+      onAdd: name => {
+        refocusAdd = true;
+        if (hasPlayer(t, name)) { toast(name.trim() + ' is already in the session'); render(); return; }
+        dispatch({ type: 'ADD_PLAYER', name });
+      },
+      onRemove: id => dispatch({ type: 'REMOVE_PLAYER', id }),
+      onAddCourt: () => dispatch({ type: 'ADD_COURT' }),
+      onPhotos: () => openGalleryOverlay(() => photoGroups(session), (seq, idx) => dispatch({ type: 'DELETE_PHOTO', matchId: 'match_' + seq, index: idx })),
+      onEnd: () => confirmModal({
+        title: 'End session?', text: 'Standings are kept. Any match still in progress is discarded.', yes: 'End session',
+        onYes: () => { dispatch({ type: 'END_SESSION' }); go('courtSummary'); } }),
+    }),
+  ];
+}
+
+// Full-screen scoring for one court, or the match result once someone has won.
+function courtPlayScreen() {
+  const t = session, court = activeCourt ? courtById(t, activeCourt) : null, m = court ? matchOnCourt(t, court.id) : null;
+  if (!m) return courtsScreen();                 // court was freed / app reopened: nothing to score here, show the dashboard
+  const rules = getRules(t.sport, t.target, t.noAd);
+  const A = m.teams.teamA.join(' & '), B = m.teams.teamB.join(' & ');
+  const hdr = header(sportInfo[t.sport].name.toUpperCase() + ' | ' + court.name, () => go('courts'));
+
+  if (m.winner) {
+    return [hdr, WinnerView({
+      label: 'Match complete', side: m.winner, name: m.winner === 'A' ? A : B,
+      score: scoreLine(m, ' – '), meta: court.name + '  ·  Round ' + m.round, photos: m.photos,
+      primary: { label: 'Finish & Next Match', icon: 'arrow', onClick: () => finishCourtMatch(court.id) },
+      secondary: [{ label: 'Photo', icon: 'camera', onClick: () => takeCourtPhoto(court.id) }, { label: 'Courts', icon: 'back', onClick: () => go('courts') }],
+      link: { label: 'Wrong tap? Undo last point', onClick: () => dispatch({ type: 'UNDO', courtId: court.id }) },
+    })];
+  }
+  const controls = [
+    { label: 'Undo', icon: 'undo', onClick: () => dispatch({ type: 'UNDO', courtId: court.id }), disabled: !m.log.length, aria: 'Undo last point' },
+    { label: 'Photo' + (m.photos.length ? ' (' + m.photos.length + ')' : ''), icon: 'camera', onClick: () => takeCourtPhoto(court.id), aria: 'Take photo' },
+  ];
+  if (t.serve && !m.log.length) controls.push({ label: 'Serve', icon: 'reset', onClick: () => dispatch({ type: 'SWAP_SERVE', courtId: court.id }), aria: 'Swap which team serves first' });
+  return [hdr, ScoreStage({
+    rules, game: m, nameA: A, nameB: B,
+    serve: serveInfo({
+      sport: t.sport, rules, game: m, serve: t.serve && Object.assign({}, t.serve, { first: m.serveFirst || 'A' }),
+      doubles: t.format === 'doubles', names: { A: m.teams.teamA, B: m.teams.teamB }, teamNames: { A, B },
+    }),
+    unit: court.name + '  ·  Round ' + m.round, onTap: side => courtTap(court.id, side), controls,
+  })];
+}
+
+function courtTap(courtId, side) {
+  const m = matchOnCourt(session, courtId);
+  if (!m || m.winner) return;
+  dispatch({ type: 'TAP', courtId, side });
+  const won = !!(matchOnCourt(session, courtId) || {}).winner;
+  beep(prefs.sound, won ? 880 : side === 'A' ? 660 : 520, won ? 250 : 70); buzz(won ? [80, 60, 80] : 25);
+}
+
+// Finish the match: the app has already picked the next group for this court, so go straight to "Court ready".
+function finishCourtMatch(courtId) {
+  const court = courtById(session, courtId), m = matchOnCourt(session, courtId);
+  const winners = m.winner === 'A' ? m.teams.teamA : m.teams.teamB;
+  courtReady = { courtId, recap: court.name + ': ' + winners.join(' & ') + ' won ' + scoreLine(m, '–') };
+  nav = 'courtReady';                            // set first so the re-render inside dispatch() doesn't flash the next match
+  dispatch({ type: 'FINISH_MATCH', courtId });
+}
+
+function courtReadyScreen() {
+  if (!courtReady) return courtsScreen();
+  const info = courtReady;
+  return [
+    header(courtsTitle(), () => { courtReady = null; go('courts'); }),
+    CourtReady(session, {
+      courtId: info.courtId, recap: info.recap,
+      onStart: () => { activeCourt = info.courtId; courtReady = null; go('courtPlay'); },
+      onBack: () => { courtReady = null; go('courts'); },
+    }),
   ];
 }
 
 function courtSummaryScreen() {
   return [
-    header(sportInfo[session.sport].name.toUpperCase() + ' | Courts', () => go('sports')),
+    header(courtsTitle(), () => go('sports')),
     SessionSummary({
       t: session, onMenu: () => go('sports'), onDelete: deleteSession,
       onShare: () => share(sessionShareText(session)),
       onDeletePhoto: (seq, idx) => dispatch({ type: 'DELETE_PHOTO', matchId: 'match_' + seq, index: idx }),
     }),
   ];
-}
-
-function courtTap(courtId, side) {
-  const m = matchOnCourt(session, courtId);
-  if (!m || m.winner) return;
-  beep(prefs.sound, side === 'A' ? 660 : 520); buzz(25);
-  dispatch({ type: 'TAP', courtId, side });
-  const after = matchOnCourt(session, courtId);
-  if (after && after.winner) showCourtWin(courtId);
-}
-
-function finishCourtMatch(courtId) {
-  const court = courtById(session, courtId);
-  dispatch({ type: 'FINISH_MATCH', courtId });
-  const next = courtById(session, courtId);
-  if (next.currentMatch) {
-    const m = matchById(session, next.currentMatch);
-    toast(court.name + ': ' + m.teams.teamA.join(' & ') + ' vs ' + m.teams.teamB.join(' & '));
-  }
-}
-
-function showCourtWin(courtId) {
-  const m = matchOnCourt(session, courtId), court = courtById(session, courtId);
-  const winners = m.winner === 'A' ? m.teams.teamA : m.teams.teamB;
-  const modal = openModal(
-    h('h2', {}, winners.join(' & ') + (winners.length === 1 ? ' wins!' : ' win!')),
-    h('p', {}, court.name + ' · ' + m.teams.teamA.join(' & ') + ' ' + scoreLine(m, ' – ') + ' ' + m.teams.teamB.join(' & ')),
-    h('div', { class: 'row' },
-      h('button', { onclick: () => { modal.close(); dispatch({ type: 'UNDO', courtId }); } }, 'Undo last'),
-      h('button', { class: 'primary', onclick: () => { modal.close(); finishCourtMatch(courtId); } }, 'Finish & next →')));
-  beep(prefs.sound, 880, 250); buzz([80, 60, 80]);
 }
 
 function takeCourtPhoto(courtId) {
@@ -505,7 +628,6 @@ function takeCourtPhoto(courtId) {
 
 // ---------- boot ----------
 render();
-if (nav === 'tourn' && T.currentRound(tournament).winner) showRoundWin();
 
 // keep the screen awake during a match
 const wake = () => { try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {} };

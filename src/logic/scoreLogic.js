@@ -56,6 +56,12 @@ export function scoreLine(game, sep) {
   return game.scoreA + (sep || '–') + game.scoreB + tb;
 }
 
+// One-line description of a sport's winning rule, e.g. "First to 21, win by 2 (max 30)". Presentation only.
+export function rulesText(rules) {
+  if (isTennis(rules)) return 'Set to 6 games, win by 2 · ' + (rules.noAd ? 'Golden point' : 'Advantage') + ' · tiebreak at 6–6';
+  return 'First to ' + rules.winAt + (rules.by2 ? ', win by 2' : '') + (rules.cap ? ' (max ' + rules.cap + ')' : '');
+}
+
 export function statusText(game, rules, nameA, nameB) {
   if (game.winner) return '';
   if (isTennis(rules)) return tennisStatus(game, rules, nameA, nameB);

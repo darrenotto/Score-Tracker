@@ -35,6 +35,21 @@ export function openModalClass(cls, ...content) {
 }
 export const openModal = (...content) => openModalClass('', ...content);
 
+// Bottom sheet: slides up from the bottom, closes on backdrop tap or Escape. Good for "one level deeper" details.
+export function openSheet(title, ...content) {
+  const body = h('div', { class: 'sheet-body' }, content);
+  const back = h('div', { class: 'sheet-back' },
+    h('div', { class: 'sheet', role: 'dialog', 'aria-label': title },
+      h('div', { class: 'sheet-grip', 'aria-hidden': 'true' }),
+      h('h2', { class: 'sheet-title' }, title), body));
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  const close = () => { back.remove(); document.removeEventListener('keydown', onKey); };
+  back.addEventListener('click', e => { if (e.target === back) close(); });
+  document.addEventListener('keydown', onKey);
+  document.body.append(back);
+  return { close, body };
+}
+
 export function confirmModal(o) {
   const m = openModal(
     h('h2', {}, o.title),
