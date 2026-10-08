@@ -1,6 +1,6 @@
 import { h, openSheet } from '../dom.js';
 import { SportCard } from './SportCard.js';
-import { SecondaryButton } from './Buttons.js';
+import { PrimaryButton, SecondaryButton } from './Buttons.js';
 import { icon } from './Icons.js';
 import { sportOrder, sportInfo } from '../logic/sportRules.js';
 
@@ -29,10 +29,20 @@ export function SportSelectionMenu(o) {
   });
   const any = cont || resumeCards.length;
 
+  // "Start scoring": the seven sports are right below, so this points at them (a short pulse) and moves focus to the first one.
+  const startScoring = () => {
+    const grid = document.querySelector('.sport-grid');
+    if (!grid) return;
+    grid.classList.remove('nudge'); void grid.offsetWidth; grid.classList.add('nudge');
+    const first = grid.querySelector('.sport-card');
+    if (first) first.focus({ preventScroll: true });
+  };
+
   return h('div', { class: 'screen menu' + (any ? ' has-resume' : '') },
-    h('div', { class: 'page-head' },
-      h('h1', { class: 'page-title' }, 'What are we playing?'),
-      h('p', { class: 'page-sub' }, 'Tap a sport and start scoring.')),
+    h('header', { class: 'hero' },
+      h('h1', { class: 'hero-title' }, 'Stop arguing about the ', h('span', { class: 'hero-em' }, 'score.')),
+      h('p', { class: 'hero-sub' }, 'Free score keeper for badminton, padel, tennis and more. Tap, tap, done. No sign-up.'),
+      any ? null : PrimaryButton('Start scoring', startScoring, { big: true, icon: 'arrow' })),
     any ? h('section', { class: 'resume-section', 'aria-label': 'Continue playing' },
       cont ? h('div', { class: 'resume-list' }, cont) : null,
       resumeCards.length ? h('div', { class: 'resume-list' }, resumeCards) : null) : null,

@@ -15,6 +15,11 @@ export function sportFromPath(pathname) {
 }
 export const pathForSport = key => (slugOf(key) ? '/' + slugOf(key) : '/');
 
+// The page title for a sport URL. The same text is written into <sport>.html by tools/make-pages.py (a test compares them),
+// so a page served from the offline cache or the installed app has the right title too.
+const NAMES = { badminton: 'Badminton', volleyball: 'Volleyball', tennis: 'Tennis', tableTennis: 'Table Tennis', padel: 'Padel', basketball: 'Basketball', squash: 'Squash' };
+export const seoTitle = key => (NAMES[key] ? NAMES[key] + ' Score Keeper ' + String.fromCharCode(0x2014) + ' Free, No Sign-up | ScoreTracker' : null);
+
 // ---------- source tracking ----------
 // first touch: stored once in localStorage and never overwritten. latest: kept for this browser session.
 const FIRST = 'st2.srcFirst', LATEST = 'st2.srcLatest';

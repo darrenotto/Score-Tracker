@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><title>ScoreTracker tests</title>
 <style>body{font:15px system-ui;margin:24px;max-width:760px}.ok{color:#0a7d5c}.bad{color:#b91c1c}pre{background:#f1f5f9;padding:12px;border-radius:8px;overflow:auto}</style></head>
 <body>
-<h1>Simulations: social scheduling, undo, quick-match series, analytics</h1>
+<h1>Checks: social scheduling, undo, quick-match series, analytics, SEO pages</h1>
 <p id="status">Running…</p>
 <pre id="out"></pre>
 <script type="module">
@@ -10,10 +10,11 @@
   import { run as runUndo } from './undoSim.js';
   import { run as runQuick } from './quickSim.js';
   import { run as runAnalytics } from './analyticsSim.js';
+  import { run as runSeo } from './seoSim.js';
   const t0 = performance.now();
   try {
-    const a = runSocial(), b = runUndo(), c = runQuick(), d = runAnalytics();
-    const r = { total: a.total + b.total + c.total + d.total, passed: a.passed + b.passed + c.passed + d.passed, failed: a.failed + b.failed + c.failed + d.failed, fails: a.fails.concat(b.fails, c.fails, d.fails), stats: { social: a.stats, undo: b.stats, quick: c.stats, analytics: d.stats }, parts: { social: [a.passed, a.total], undo: [b.passed, b.total], quick: [c.passed, c.total], analytics: [d.passed, d.total] } };
+    const a = runSocial(), b = runUndo(), c = runQuick(), d = runAnalytics(), e = await runSeo();
+    const r = { total: a.total + b.total + c.total + d.total + e.total, passed: a.passed + b.passed + c.passed + d.passed + e.passed, failed: a.failed + b.failed + c.failed + d.failed + e.failed, fails: a.fails.concat(b.fails, c.fails, d.fails, e.fails), stats: { social: a.stats, undo: b.stats, quick: c.stats, analytics: d.stats, seo: e.stats }, parts: { social: [a.passed, a.total], undo: [b.passed, b.total], quick: [c.passed, c.total], analytics: [d.passed, d.total], seo: [e.passed, e.total] } };
     window.__results = r;
     const s = document.getElementById('status');
     s.textContent = r.passed + ' / ' + r.total + ' checks passed in ' + Math.round(performance.now() - t0) + ' ms';

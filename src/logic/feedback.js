@@ -13,7 +13,11 @@ export function beep(enabled, freq, ms) {
 }
 
 export function buzz(pattern) {
-  try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) {}
+  try {
+    if (!navigator.vibrate) return;
+    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;   // browsers refuse (and log) a buzz before the first tap
+    navigator.vibrate(pattern);
+  } catch (e) {}
 }
 
 export function share(text) {

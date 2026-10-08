@@ -1,6 +1,12 @@
 {
   "rewrites": [
-    { "source": "/:sport(badminton|padel|tennis|volleyball|table-tennis|squash|basketball)", "destination": "/index.html" },
+    { "source": "/badminton", "destination": "/badminton.html" },
+    { "source": "/volleyball", "destination": "/volleyball.html" },
+    { "source": "/tennis", "destination": "/tennis.html" },
+    { "source": "/table-tennis", "destination": "/table-tennis.html" },
+    { "source": "/padel", "destination": "/padel.html" },
+    { "source": "/basketball", "destination": "/basketball.html" },
+    { "source": "/squash", "destination": "/squash.html" },
     { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
   ]
 }

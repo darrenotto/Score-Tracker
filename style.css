@@ -690,3 +690,29 @@ button.trd-in { min-height: 44px; }
   .qm-toggle { min-height: 30px; font-size: 13px; }
   .qm-win-score { font-size: clamp(44px, 9dvh, 80px); }
 }
+
+/* --- home hero (S4): the one line that says what this is, one button, then the sports --- */
+.hero { display: flex; flex-direction: column; gap: 6px; flex: 0 0 auto; }
+.hero-title { margin: 0; font-size: clamp(25px, 7.4vw, 34px); line-height: 1.12; font-weight: 800; letter-spacing: -.02em; text-wrap: balance; }
+.hero-em { color: var(--primary-ink); }
+.hero-sub { margin: 0; font-size: 15px; line-height: 1.35; color: var(--muted); }
+.hero > .btn { margin-top: var(--sp-2); }
+.sport-grid.nudge .sport-card { animation: nudge 1.1s ease-out 1; }
+@keyframes nudge { 0% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), .55); } 60% { box-shadow: 0 0 0 7px rgba(var(--accent-rgb), 0); } 100% { box-shadow: var(--shadow-sm); } }
+@media (prefers-reduced-motion: reduce) { .sport-grid.nudge .sport-card { animation: none; } }
+/* returning players have the Continue card instead: just the headline, smaller */
+.has-resume .hero-title { font-size: clamp(20px, 5.6vw, 26px); }
+.has-resume .hero-sub { display: none; }
+@media (max-height: 740px) { .hero-sub { font-size: 14px; } .hero-title { font-size: clamp(23px, 6.8vw, 30px); } }
+@media (max-height: 600px) { .hero-sub { display: none; } .hero > .btn { min-height: 48px; } }
+@media (max-height: 560px) { .fit-screen .menu .hero { display: block; } .fit-screen .menu .hero > .btn { display: none; } .hero-title { font-size: 20px; } }
+@media (orientation: landscape) and (max-height: 520px) { .fit-screen .menu .hero { display: none; } }
+
+/* hero + 7 sports on a 360x640 screen: the cards get tighter before they would clip */
+@media (max-height: 740px) and (min-height: 601px) {
+  .fit-screen .sport-grid .sport-card { padding: 8px 12px; gap: 4px; }
+  .fit-screen .sport-grid .sport-tile { width: 32px; height: 32px; flex-basis: 32px; }
+}
+/* the hero only gives way on a very short landscape phone (568x320) */
+@media (orientation: landscape) and (max-height: 520px) { .fit-screen .menu .hero { display: flex; } .fit-screen .menu .hero > .btn { display: none; } .hero-sub { display: none; } .hero-title { font-size: 20px; } }
+@media (orientation: landscape) and (max-height: 380px) { .fit-screen .menu .hero { display: none; } }

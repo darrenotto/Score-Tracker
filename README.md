@@ -1,62 +1,81 @@
 # ScoreTracker
 
-Fast score tracker, single-device tournament scorer and drop-in court manager. Static site, no build step, no backend.
+Fast score tracker for casual players ("Stop arguing about the score."), plus a single-device tournament scorer and a drop-in court manager. Static site, no build step, no backend. Deployed on Vercel from GitHub.
 
 ## Run locally
 ES modules need http (not file://):
 
     python -m http.server 8080
 
-## Flow
-Sign-in (Google or Guest) → Sport menu (7 sports) → Rules popup → Quick Match / Tournament / Court session
-→ setup → scoring → summary. Anything unfinished appears at the top of the sport menu ("Pick up where you left off").
+Sport URLs such as `/padel` need the rewrites in `vercel.json`; the plain server above doesn't have them, so open `/` there
+(or use any dev server that serves `<sport>.html` for `/<sport>`).
 
-- **Quick Match** – team names, big tap halves, photos, undo, reset, auto-win → summary with share/rematch.
-- **Tournament** – opens a chooser (`TournamentChooser`, modes in `src/logic/tournamentModes.js`) with a one-line card
-  per mode and a fuller pop-up on tap. **Match series** is the original mode below. **Social** (4–16 players, rotating
-  partners, equal matches, ranked by points/wins) has its logic and tests done, screens coming. **Knockout** is planned.
-  **Hybrid** (fixed doubles teams, equal matches, highest total points) is registered but hidden; it reuses the same
-  scheduler (`mode:'fixed'`) and ranking (`ORDER.total`).
-- **Match series** – one match between two sides played as a best-of 1/3/5 series (games, or sets in tennis/padel).
-  3-step setup → dashboard (series score, Game 1 → Game 2 → Final strip, the live game) → full-screen scoring →
-  Game Complete → next game … → Champion. Finished games open in a bottom sheet (View Result).
-- **Court session** – courts + a FIFO player queue; matches form automatically as courts free up. 3-step setup →
-  dashboard with [Courts] [Queue] [Standings] → full-screen court scoring → Match complete → *Court ready* (next group
-  is already assigned) → Start Match. Landscape shows courts side by side.
-- Everything auto-saves in the browser (localStorage). Photos are downscaled to ~960px JPEG (~50–100 KB).
+## Flow
+Home (hero + the 7 sports) → tap a sport → you are scoring. No sign-in, no mode screen, no rules popup.
+Rules open only from the **?** on a sport card or on the scoreboard. Anything unfinished appears at the top of the home screen,
+and an unfinished Quick Match with points asks "Resume match?" when the app is reopened.
+
+- **Quick Match** – default names Left / Right (tap a name to edit), big tap halves, Undo (unlimited, saved), Photo,
+  End match, Reset, options (target, doubles + serve tracking). The result screen has Share result (a 1080x1350 card
+  image through the phone's share sheet; download + copied text where files can't be shared), Rematch (with an
+  optional "swap sides" and a running series tally) and New match.
+- **Tournament / Court session** – "Run a tournament" and "Court session" are links under the sport grid (they ask for a sport).
+  The tournament chooser offers **Match series** (best-of 1/3/5, the original mode), **Social** and **Knockout**
+  (logic done / planned, screens coming) and a hidden **Hybrid** (fixed teams, equal matches, total points; reuses the
+  Social scheduler with `mode:'fixed'` and `ORDER.total`). Court sessions: courts + a FIFO queue; matches form as courts free up.
+- Everything auto-saves in the browser (localStorage) after every point. If the browser says storage is full the score
+  is still saved and the photos are dropped from the saved copy (you are told once).
+
+## Deep links and sources
+`/badminton /padel /tennis /volleyball /table-tennis /squash /basketball` open a Quick Match for that sport (also offline and in
+the installed app). `?src=court-gor-senayan` (or `tiktok`, `share`...) is remembered: the first one forever (`st2.srcFirst`),
+the latest for the session (`st2.srcLatest`), and both are attached to every analytics event.
+Unknown paths show the home screen.
 
 ## Layout
-    index.html, style.css, sw.js (offline), manifest.json, privacy.html
-    src/logic/      sports, sportRules, scoreLogic, tournamentLogic, courtAssignmentLogic, matchCompletionLogic,
-                    roundGenerationLogic, playerQueueLogic, sessionReducer, photoLogic, storageLogic, authLogic, feedback
-    src/components/ one file per screen/widget. Shared building blocks: ScoreStage (the fit-to-viewport scoreboard used by\n                    Quick/Tournament/Court scoring), WinnerView (result screens), MatchCard + PlayerRow, CourtCard,\n                    StatusBadge, SegmentedControl, Buttons, SetupWizard, QueueItem, StandingsRow, TournamentRound
-    src/app.js      screen router, state, persistence
+    index.html, <sport>.html (generated), style.css, sw.js (offline), manifest.json, vercel.json, privacy.html
+    tools/make-pages.py   writes the per-page <title>/description/Open Graph tags into index.html and <sport>.html
+    src/config.js         SITE_URL, GA_MEASUREMENT_ID
+    src/logic/            sports, sportRules, scoreLogic, quickMatch (series/rematch/end), shareResult + resultCard (share image),
+                          deepLinks (sport URLs, ?src=), analytics (track()), wakeLock, storageLogic, tournamentLogic,
+                          courtAssignmentLogic, tournamentModes, schedulingLogic, rankingLogic, socialLogic, authLogic, feedback ...
+    src/components/       one file per screen/widget. Shared: ScoreStage (fit-to-viewport scoreboard), WinnerView (result
+                          screens), SportSelectionMenu (home), MatchCard, CourtCard, Buttons, SetupWizard ...
+    src/app.js            screen router (with browser Back support), state, persistence
+    tests/run.html        open through a dev server: social scheduling, undo, quick-match series, analytics, SEO pages
 
-Tournament-mode logic: `tournamentModes` (registry), `schedulingLogic` (seeded round planner), `rankingLogic`
-(tally + shared ranks), `socialLogic` (setup, rounds, scoring, standings). Tests: open `tests/run.html` through the
-dev server; it runs ~4000 simulation checks (match balance, partner/opponent repeats, ranking ties, early finish).
+Add a sport: an entry in `src/logic/sports.js`, its rules text in `src/logic/sportRules.js`, its slug in `src/logic/deepLinks.js`
+and `tools/make-pages.py`, a rewrite in `vercel.json`, then run `python tools/make-pages.py --site https://your-domain`.
 
-Add a sport: an entry in `src/logic/sports.js` and its rules text in `src/logic/sportRules.js`.
+## Before you go live (settings)
+1. `src/config.js`: set `GA_MEASUREMENT_ID` (GA4 > Admin > Data streams). Until it is a real `G-...` ID analytics stay off.
+   Add `?debug_ga=1` once to a URL to see events in GA4 DebugView.
+2. Share cards and links use the address the app runs at; set `SITE_URL` in `src/config.js` only if you use a custom domain.
+3. Run `python tools/make-pages.py --site https://your-real-domain.com` and commit: link previews (WhatsApp, X) need absolute
+   addresses in the Open Graph tags, and the placeholder `your-site.vercel.app` is what is there now.
+4. Service worker: when you change files, bump `CACHE` in `sw.js` and keep `ASSETS` complete (every file needed offline).
 
 ## Google sign-in
 Optional and personalisation-only (first name + avatar kept in the browser; no email, no server, token not verified).
-1. Google Cloud Console → Credentials → OAuth client ID → *Web application*.
-2. Add your deployed origin (e.g. `https://yourapp.netlify.app`) under *Authorized JavaScript origins*.
+It is reachable from the profile icon, never shown first.
+1. Google Cloud Console > Credentials > OAuth client ID > *Web application*.
+2. Add your deployed origin under *Authorized JavaScript origins*.
 3. Paste the client ID into `AUTH_CONFIG.googleClientId` in `src/logic/authLogic.js`.
 Until then the Google button tells the user it isn't set up and Guest works as normal.
 
 ## Ads
-`src/components/AdBanner.js` → `AD_CONFIG`. AdMob is native-app only; on the web use AdSense.
+`src/components/AdBanner.js` > `AD_CONFIG` (disabled: nothing is drawn). AdMob is native-app only; on the web use AdSense.
 
 ## Layout rules
-ScoreTracker's live screens fit the viewport (no page scroll): ody.fit-screen is switched on in pp.js (FIT_SCREENS),\nlong lists scroll inside their own area, and ads only show when there is room (hidden on short screens).
+Live screens (home, scoring, results) fit the viewport with no page scroll: `body.fit-screen` is switched on in `app.js`
+(`FIT_SCREENS`), long lists scroll inside their own area. The home screen and result screen were checked from 320x480 up to
+tablet sizes, portrait and landscape.
 
 ## Known limits
-- Tennis/Padel score point by point (15/30/40, deuce/advantage or golden point, games, 6–6 tiebreak). A Quick Match is one set;
+- Tennis/Padel score point by point (15/30/40, deuce/advantage or golden point, games, 6-6 tiebreak). A Quick Match is one set;
   use Tournament "Best of 3 Sets" for a full match. Side changes and a 10-point deciding tiebreak aren't tracked.
-- Optional "Track who's serving" (tennis, padel, badminton): shows the server and Right/Left side. Badminton doubles asks which
-  player starts in the right box; tennis/padel doubles asks who serves first per team. Assumes the same starting boxes each
-  badminton game; in Courts mode the first-listed player serves first (swap the first-serving team before the first point).
+- Optional "Track who's serving" (tennis, padel, badminton): reachable from the match options > "Doubles, player names & serve
+  tracking". Assumes the same starting boxes each badminton game.
 - Basketball is +1 per tap (tap twice for a two-pointer).
 - Camera needs HTTPS (or localhost); otherwise the app falls back to the file/camera picker.
-- Service worker serves cached files first and updates in the background, so a deploy shows on the second load.
+- The service worker serves cached files first and updates in the background, so a deploy shows on the second load.

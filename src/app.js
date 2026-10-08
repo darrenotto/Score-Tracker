@@ -1,7 +1,7 @@
 import { h, clear, toast, openModal, openSheet, confirmModal } from './dom.js';
 import { sports, getRules, defaultTarget } from './logic/sports.js';
 import { sportInfo, sportOrder } from './logic/sportRules.js';
-import { sportFromPath, captureSource } from './logic/deepLinks.js';
+import { sportFromPath, captureSource, seoTitle } from './logic/deepLinks.js';
 import { holdAwake, releaseAwake } from './logic/wakeLock.js';
 import { endManually, reopen, rematch, quickName } from './logic/quickMatch.js';
 import { shareResult } from './logic/shareResult.js';
@@ -828,6 +828,7 @@ function offerResume() {
 // /padel (a QR sticker, a bio link, a search result) opens a Quick Match for that sport, ready to score, with no other screens.
 // Home is the entry underneath it, so Back from the match lands on the sport menu. An unknown path is just the home screen.
 function openDeepLink(sport) {
+  if (seoTitle(sport)) document.title = seoTitle(sport);                         // right title even when served from the offline cache
   try { history.replaceState({ screen: 'sports' }, '', '/'); } catch (e) {}      // the address bar goes back to "/" so a refresh doesn't restart anything
   nav = 'sports';
   render();

@@ -1,7 +1,7 @@
 // Offline-first service worker. Everything needed to start and play a match is pre-cached on install, so after
 // one online visit the app (and every sport deep link such as /padel) loads with no signal.
 // Bump CACHE whenever a file changes: old caches are deleted on activate.
-const CACHE = 'scoretracker-v22';
+const CACHE = 'scoretracker-v25';
 const SHELL = 'index.html';
 const ASSETS = [
   SHELL,
@@ -11,6 +11,13 @@ const ASSETS = [
   'apple-touch-icon.png',
   'icon-192.png',
   'icon-512.png',
+  'badminton.html',
+  'basketball.html',
+  'padel.html',
+  'squash.html',
+  'table-tennis.html',
+  'tennis.html',
+  'volleyball.html',
   'src/app.js',
   'src/components/AdBanner.js',
   'src/components/Buttons.js',
