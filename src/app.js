@@ -285,8 +285,9 @@ function resumeItems() {
 function openFeedbackModal(source, rating) {
   openFeedback({
     source, rating, sport: quick ? quick.sport : prefs.lastSport,
-    onSent: () => snoozeFeedback(30),
-    onDismiss: () => snoozeFeedback(30),
+    onOpen: () => track('feedback_opened', { source }),
+    onSent: f => { snoozeFeedback(30); track('feedback_submitted', { rating: f.rating || undefined, topics: f.topics.join(',') || undefined, has_comment: f.comment.trim().length > 0, has_email: f.email.trim().length > 0, consent: !!f.consent }); },
+    onDismiss: () => { snoozeFeedback(30); track('feedback_dismissed', { source }); },
     onClose: () => { if (nav === 'quickSummary') render(); },        // the stars disappear as soon as the modal is done
   });
 }
@@ -400,6 +401,8 @@ function renameTeam(side) {
   setTimeout(() => { input.focus(); input.select(); }, 50);
 }
 
+// Every finished Quick Match counts once toward showing the rating row (from the 2nd one on), even if it is undone and finished again.
+function countFinished() { if (!quick.counted) { quick.counted = true; countFinishedMatch(); } }
 function trackFinished(manual) { track('match_finished', { duration_sec: Math.max(1, Math.round((quick.endTime - quick.startTime) / 1000)), ended_manually: !!manual }); }
 let swapNext = false;                                 // "Swap sides" on the result screen, for the next rematch
 
@@ -412,7 +415,7 @@ function endQuickMatch() {
   confirmModal({
     title: 'End the match here?', yes: 'End match', no: 'Keep playing', danger: false,
     text: quickName(quick, w) + ' wins ' + scoreLine(quick.game, ' – ') + '. You can still go back to the match from the result.',
-    onYes: () => { quick = next; trackFinished(true); saveQuickSafe(); go('quickSummary'); },
+    onYes: () => { quick = next; trackFinished(true); countFinished(); saveQuickSafe(); go('quickSummary'); },
   });
 }
 
@@ -434,7 +437,7 @@ function quickTap(side) {
   beep(prefs.sound, side === 'A' ? 660 : 520); buzz(30);
   if (quick.game.winner) {
     quick.status = 'finished'; quick.endTime = Date.now();
-    trackFinished(false);
+    trackFinished(false); countFinished();
     saveQuickSafe();
     beep(prefs.sound, 880, 250); buzz([80, 60, 80]);
     go('quickSummary');
@@ -468,6 +471,7 @@ function quickSummaryScreen() {
     header(sportInfo[quick.sport].name.toUpperCase() + ' | Quick Match', () => go('sports')),
     QuickMatchSummary({
       q: quick, swap: swapNext, onSwap: v => { swapNext = v; },
+      onRate: shouldShowRating() ? n => openFeedbackModal('result_screen', n) : null,
       onShare: () => shareResult(quick).then(how => { if (how === 'native' || how === 'download') track('result_shared', { method: how }); }),
       onRematch: () => confirmReplace(quick.photos.length, 'photos from this match', () => {
         track('rematch_clicked');

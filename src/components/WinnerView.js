@@ -6,7 +6,17 @@ import { openLightbox } from './PhotoGallery.js';
 // Portrait stacks hero + actions; landscape puts them side by side (CSS: .qm-win).
 // o: { label, name, players?, side: 'A'|'B', score, meta?, series?,
 //      sideTop? (extra node above the actions, e.g. a results list), photos?[], onDeletePhoto?(i),
+//      rating? { onRate(n) } (a 'How did ScoreTracker do today?' star row under the meta line),
 //      primary: { label, icon, onClick }, secondary?: [{ label, icon, onClick }], toggle?: { label, checked, onChange(bool) }, link?: { label, onClick } }
+// Five stars: tapping star N fills 1..N and hands N to onRate (the app opens the feedback form with it pre-selected).
+function ratingRow(onRate) {
+  const stars = [1, 2, 3, 4, 5].map(n => h('button', {
+    type: 'button', class: 'qm-rate-star', 'aria-label': 'Rate ' + n + ' out of 5',
+    onclick: () => { stars.forEach((b, i) => b.classList.toggle('on', i < n)); onRate(n); },
+  }, icon('star', 22)));
+  return h('div', { class: 'qm-rate' }, h('div', { class: 'qm-rate-prompt' }, 'How did ScoreTracker do today?'), h('div', { class: 'qm-rate-stars' }, stars));
+}
+
 export function WinnerView(o) {
   const btn = (cls, b) => h('button', { type: 'button', class: 'qm-act ' + cls, onclick: b.onClick }, icon(b.icon || 'arrow', 20), h('span', {}, b.label));
   const photos = o.photos || [];
@@ -18,7 +28,8 @@ export function WinnerView(o) {
       o.players ? h('div', { class: 'qm-win-sub' }, o.players) : null,
       h('div', { class: 'qm-win-score' }, o.score),
       o.series ? h('div', { class: 'qm-win-series' }, o.series) : null,
-      o.meta ? h('div', { class: 'qm-win-meta' }, o.meta) : null),
+      o.meta ? h('div', { class: 'qm-win-meta' }, o.meta) : null,
+      o.rating ? ratingRow(o.rating.onRate) : null),
     h('div', { class: 'qm-win-side' },
       // extras (results list, photos) scroll inside their own area; the buttons below are always on screen
       o.sideTop || photos.length ? h('div', { class: 'qm-win-extra' },

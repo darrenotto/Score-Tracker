@@ -53,7 +53,7 @@ export function seriesText(q, includeCurrent) {
 export function rematch(q, o, now) {
   const done = { winner: quickWinner(q), scoreA: q.game.scoreA, scoreB: q.game.scoreB };
   let history = historyOf(q).concat(done);
-  const next = Object.assign({}, q, { game: newGame(), status: 'playing', startTime: now, endTime: null, photos: [], manualWinner: null, endedManually: false });
+  const next = Object.assign({}, q, { game: newGame(), status: 'playing', startTime: now, endTime: null, photos: [], manualWinner: null, endedManually: false, counted: false });
   if (o && o.swap) {
     next.nameA = q.nameB; next.nameB = q.nameA;
     next.playersA = q.playersB || []; next.playersB = q.playersA || [];

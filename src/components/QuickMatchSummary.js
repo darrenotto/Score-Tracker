@@ -10,7 +10,7 @@ export const quickDurationMin = durationMin;
 export const quickShareText = q => shareText(q);
 
 // The Quick Match result screen: winner, final score, who/what/when, photos, and the three things to do next.
-// o: { q, swap, onSwap(bool), onShare(), onRematch(), onNewMatch(), onUndo(), onDeletePhoto(index) }
+// o: { q, swap, onRate(n)? (only passed when the rating row should show), onSwap(bool), onShare(), onRematch(), onNewMatch(), onUndo(), onDeletePhoto(index) }
 export function QuickMatchSummary(o) {
   const q = o.q, g = q.game, w = quickWinner(q), tennis = getRules(q.sport, q.target, q.noAd).system === 'tennis';
   return WinnerView({
@@ -21,6 +21,7 @@ export function QuickMatchSummary(o) {
     series: [tennis ? 'Set ' + gameNumber(q) : null, seriesText(q, true) || null].filter(Boolean).join('  ·  ') || null,
     meta: sportInfo[q.sport].name + '  ·  ' + q.nameA + ' vs ' + q.nameB + '  ·  ' + cardDate(q.endTime) + '  ·  ' + durationMin(q) + ' min',
     photos: q.photos, onDeletePhoto: o.onDeletePhoto,
+    rating: o.onRate ? { onRate: o.onRate } : null,
     primary: { label: 'Share result', icon: 'share', onClick: o.onShare },
     secondary: [{ label: 'Rematch', icon: 'reset', onClick: o.onRematch }, { label: 'New match', icon: 'plus', onClick: o.onNewMatch }],
     toggle: { label: 'Swap sides for the rematch', checked: o.swap, onChange: o.onSwap },

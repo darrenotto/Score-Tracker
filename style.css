@@ -774,3 +774,19 @@ button.trd-in { min-height: 44px; }
 :root[data-theme="dark"] .qm-rate-star { background: rgba(255,255,255,.12); }
 .qm-rate-star.on { color: var(--warning); }
 .qm-rate-star.on svg { fill: currentColor; }
+
+/* result screen with the rating row on a short phone: tighter spacing inside the winner card so the buttons stay on screen */
+@media (max-height: 620px) and (orientation: portrait) {
+  .qm-win-hero { padding: var(--sp-2) var(--sp-3); gap: 2px; }
+  .qm-win-score { font-size: clamp(40px, 8.5dvh, 64px); margin-top: 0; }
+  .qm-win-meta { margin-top: 0; }
+  .qm-rate { margin-top: 6px; padding-top: 6px; gap: 6px; }
+  .qm-rate-prompt { font-size: 13px; }
+}
+@media (max-height: 520px) and (orientation: portrait) {
+  .qm-win-label { display: none; }
+  .qm-win-score { font-size: clamp(36px, 7.5dvh, 52px); }
+  .qm-toggle { min-height: 26px; }
+  .qm-win-actions { gap: 6px; }
+  .qm-act, .qm-act.primary { min-height: 46px; }
+}
