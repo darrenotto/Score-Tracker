@@ -3,6 +3,8 @@ import { sports, getRules, defaultTarget } from './logic/sports.js';
 import { sportInfo, sportOrder } from './logic/sportRules.js';
 import { sportFromPath, captureSource } from './logic/deepLinks.js';
 import { holdAwake, releaseAwake } from './logic/wakeLock.js';
+import { endManually, reopen, rematch, quickName } from './logic/quickMatch.js';
+import { shareResult } from './logic/shareResult.js';
 import { newGame, addPoint, undoPoint, scoreLine } from './logic/scoreLogic.js';
 import * as T from './logic/tournamentLogic.js';
 import * as store from './logic/storageLogic.js';
@@ -334,12 +336,13 @@ function startQuick() {
 
 // One tap from the sport menu to a match that is ready to score: default names, default rules. Anything else
 // (target, doubles, serve tracking) is reachable from the options button on the scoring screen.
-function startQuickMatch(sport) {
-  confirmReplace(quick && (quick.game.log.length || quick.photos.length), 'quick match', () => {
+function startQuickMatch(sport, fresh) {
+  confirmReplace(!fresh && quick && (quick.game.log.length || quick.photos.length), 'quick match', () => {
     ctx = { sport, target: targetFor(sport), noAd: false, serve: newServeDraft() };
     quickDraft = newQuickDraft();
     quick = { sport, target: ctx.target, noAd: false, serve: null, format: 'singles', playersA: [], playersB: [],
-      nameA: 'Left', nameB: 'Right', game: newGame(), status: 'playing', startTime: Date.now(), endTime: null, photos: [] };
+      nameA: 'Left', nameB: 'Right', game: newGame(), status: 'playing', startTime: Date.now(), endTime: null, photos: [], history: [] };
+    swapNext = false;
     prefs.lastSport = sport; savePrefs();
     saveQuickSafe();
     go('quick');
@@ -383,13 +386,28 @@ function renameTeam(side) {
   setTimeout(() => { input.focus(); input.select(); }, 50);
 }
 
+let swapNext = false;                                 // "Swap sides" on the result screen, for the next rematch
+
+// "End" on the scoreboard: finish now, with whoever is ahead as the winner (a level score has no winner to crown).
+function endQuickMatch() {
+  const next = endManually(quick, Date.now());
+  if (!quick.game.log.length) { toast('Score a point first'); return; }
+  if (!next) { toast('The score is level — play on until someone is ahead'); return; }
+  const w = next.manualWinner;
+  confirmModal({
+    title: 'End the match here?', yes: 'End match', no: 'Keep playing', danger: false,
+    text: quickName(quick, w) + ' wins ' + scoreLine(quick.game, ' – ') + '. You can still go back to the match from the result.',
+    onYes: () => { quick = next; saveQuickSafe(); go('quickSummary'); },
+  });
+}
+
 const quickRules = () => getRules(quick.sport, quick.target, quick.noAd);
 
 function quickScreen() {
   return [
     header(sportInfo[quick.sport].name.toUpperCase() + ' | Quick Match',
       () => quick.game.log.length ? leaveTo('sports', 'Your score is saved — resume it from the sport menu.') : go('sports')),
-    QuickMatchScoreScreen(quick, { rules: quickRules(), onTap: quickTap, onPhoto: takeQuickPhoto, onUndo: quickUndo, onReset: quickReset,
+    QuickMatchScoreScreen(quick, { rules: quickRules(), onTap: quickTap, onPhoto: takeQuickPhoto, onUndo: quickUndo, onReset: quickReset, onEnd: endQuickMatch,
       onHelp: () => openRules(quick.sport), onSettings: openQuickOptions, onRename: renameTeam }),
   ];
 }
@@ -433,14 +451,20 @@ function quickSummaryScreen() {
   return [
     header(sportInfo[quick.sport].name.toUpperCase() + ' | Quick Match', () => go('sports')),
     QuickMatchSummary({
-      q: quick,
-      onShare: () => share(quickShareText(quick, sportName(quick.sport))),
+      q: quick, swap: swapNext, onSwap: v => { swapNext = v; },
+      onShare: () => shareResult(quick),
       onRematch: () => confirmReplace(quick.photos.length, 'photos from this match', () => {
-        quick = Object.assign({}, quick, { game: newGame(), status: 'playing', startTime: Date.now(), endTime: null, photos: [] });
+        quick = rematch(quick, { swap: swapNext }, Date.now());
+        swapNext = false;                                       // the toggle is for one rematch only
         saveQuickSafe(); go('quick');
       }),
-      onMenu: () => go('sports'),
-      onUndo: () => { quick.game = undoPoint(quick.game, quickRules()); quick.status = 'playing'; quick.endTime = null; saveQuickSafe(); go('quick'); },
+      onNewMatch: () => confirmReplace(quick.photos.length, 'photos from this match', () => startQuickMatch(quick.sport, true)),
+      onUndo: () => {
+        const ended = quick.endedManually;
+        quick = reopen(quick);
+        if (!ended) quick.game = undoPoint(quick.game, quickRules());     // a match that ended by itself: take back the winning point
+        saveQuickSafe(); go('quick');
+      },
       onDeletePhoto: i => { quick.photos = quick.photos.filter((_, j) => j !== i); saveQuick(); render(); },
     }),
   ];

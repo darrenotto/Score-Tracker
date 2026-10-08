@@ -1,26 +1,29 @@
 import { WinnerView } from './WinnerView.js';
 import { scoreLine } from '../logic/scoreLogic.js';
+import { sportInfo } from '../logic/sportRules.js';
+import { getRules } from '../logic/sports.js';
+import { quickWinner, quickName, durationMin, gameNumber, seriesText } from '../logic/quickMatch.js';
+import { shareText } from '../logic/shareResult.js';
+import { cardDate } from '../logic/resultCard.js';
 
-export const quickDurationMin = q => Math.max(1, Math.round(((q.endTime || Date.now()) - q.startTime) / 60000));
+export const quickDurationMin = durationMin;
+export const quickShareText = q => shareText(q);
 
-export function quickShareText(q, sportName) {
-  const w = q.game.winner === 'A' ? q.nameA : q.nameB;
-  return '🏆 ' + w + ' wins! ' + q.nameA + ' ' + scoreLine(q.game, ' – ') + ' ' + q.nameB + ' (' + sportName + ') — ScoreTracker';
-}
-
-// The Quick Match winner state.
-// o: { q, onShare(), onRematch(), onMenu(), onUndo(), onDeletePhoto(index) }
+// The Quick Match result screen: winner, final score, who/what/when, photos, and the three things to do next.
+// o: { q, swap, onSwap(bool), onShare(), onRematch(), onNewMatch(), onUndo(), onDeletePhoto(index) }
 export function QuickMatchSummary(o) {
-  const q = o.q, g = q.game;
+  const q = o.q, g = q.game, w = quickWinner(q), tennis = getRules(q.sport, q.target, q.noAd).system === 'tennis';
   return WinnerView({
-    label: 'Winner', side: g.winner,
-    name: g.winner === 'A' ? q.nameA : q.nameB,
-    players: ((g.winner === 'A' ? q.playersA : q.playersB) || []).join(' & '),
+    label: q.endedManually ? 'Winner (match ended)' : 'Winner', side: w,
+    name: quickName(q, w),
+    players: ((w === 'A' ? q.playersA : q.playersB) || []).join(' & '),
     score: scoreLine(g, ' – '),
-    meta: q.nameA + ' vs ' + q.nameB + '  ·  ' + quickDurationMin(q) + ' min',
+    series: [tennis ? 'Set ' + gameNumber(q) : null, seriesText(q, true) || null].filter(Boolean).join('  ·  ') || null,
+    meta: sportInfo[q.sport].name + '  ·  ' + q.nameA + ' vs ' + q.nameB + '  ·  ' + cardDate(q.endTime) + '  ·  ' + durationMin(q) + ' min',
     photos: q.photos, onDeletePhoto: o.onDeletePhoto,
-    primary: { label: 'Rematch', icon: 'reset', onClick: o.onRematch },
-    secondary: [{ label: 'Share result', icon: 'share', onClick: o.onShare }, { label: 'Home', icon: 'home', onClick: o.onMenu }],
-    link: { label: 'Wrong tap? Undo last point', onClick: o.onUndo },
+    primary: { label: 'Share result', icon: 'share', onClick: o.onShare },
+    secondary: [{ label: 'Rematch', icon: 'reset', onClick: o.onRematch }, { label: 'New match', icon: 'plus', onClick: o.onNewMatch }],
+    toggle: { label: 'Swap sides for the rematch', checked: o.swap, onChange: o.onSwap },
+    link: q.endedManually ? { label: 'Not finished? Back to the match', onClick: o.onUndo } : { label: 'Wrong tap? Undo last point', onClick: o.onUndo },
   });
 }

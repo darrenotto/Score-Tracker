@@ -2,16 +2,17 @@
 <html lang="en"><head><meta charset="utf-8"><title>ScoreTracker tests</title>
 <style>body{font:15px system-ui;margin:24px;max-width:760px}.ok{color:#0a7d5c}.bad{color:#b91c1c}pre{background:#f1f5f9;padding:12px;border-radius:8px;overflow:auto}</style></head>
 <body>
-<h1>Simulations: social scheduling + undo</h1>
+<h1>Simulations: social scheduling, undo, quick-match series</h1>
 <p id="status">Running…</p>
 <pre id="out"></pre>
 <script type="module">
   import { run as runSocial } from './socialSim.js';
   import { run as runUndo } from './undoSim.js';
+  import { run as runQuick } from './quickSim.js';
   const t0 = performance.now();
   try {
-    const a = runSocial(), b = runUndo();
-    const r = { total: a.total + b.total, passed: a.passed + b.passed, failed: a.failed + b.failed, fails: a.fails.concat(b.fails), stats: { social: a.stats, undo: b.stats }, parts: { social: [a.passed, a.total], undo: [b.passed, b.total] } };
+    const a = runSocial(), b = runUndo(), c = runQuick();
+    const r = { total: a.total + b.total + c.total, passed: a.passed + b.passed + c.passed, failed: a.failed + b.failed + c.failed, fails: a.fails.concat(b.fails, c.fails), stats: { social: a.stats, undo: b.stats, quick: c.stats }, parts: { social: [a.passed, a.total], undo: [b.passed, b.total], quick: [c.passed, c.total] } };
     window.__results = r;
     const s = document.getElementById('status');
     s.textContent = r.passed + ' / ' + r.total + ' checks passed in ' + Math.round(performance.now() - t0) + ' ms';

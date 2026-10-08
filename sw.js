@@ -1,7 +1,7 @@
 // Offline-first service worker. Everything needed to start and play a match is pre-cached on install, so after
 // one online visit the app (and every sport deep link such as /padel) loads with no signal.
 // Bump CACHE whenever a file changes: old caches are deleted on activate.
-const CACHE = 'scoretracker-v19';
+const CACHE = 'scoretracker-v21';
 const SHELL = 'index.html';
 const ASSETS = [
   SHELL,
@@ -48,6 +48,7 @@ const ASSETS = [
   'src/components/TournamentSetup.js',
   'src/components/TournamentSummary.js',
   'src/components/WinnerView.js',
+  'src/config.js',
   'src/dom.js',
   'src/logic/authLogic.js',
   'src/logic/courtAssignmentLogic.js',
@@ -56,13 +57,16 @@ const ASSETS = [
   'src/logic/matchCompletionLogic.js',
   'src/logic/photoLogic.js',
   'src/logic/playerQueueLogic.js',
+  'src/logic/quickMatch.js',
   'src/logic/rankingLogic.js',
+  'src/logic/resultCard.js',
   'src/logic/roundGenerationLogic.js',
   'src/logic/schedulingLogic.js',
   'src/logic/scoreLogic.js',
   'src/logic/serveLogic.js',
   'src/logic/sessionReducer.js',
   'src/logic/sessionState.js',
+  'src/logic/shareResult.js',
   'src/logic/socialLogic.js',
   'src/logic/sportRules.js',
   'src/logic/sports.js',

@@ -680,3 +680,13 @@ button.trd-in { min-height: 44px; }
 
 /* S2: Undo sits well below the two score zones so a late tap on the bottom of a zone can't hit it */
 .qm-controls { margin-top: var(--sp-2); }
+
+/* result screen: "swap sides" toggle */
+.qm-toggle { display: flex; align-items: center; justify-content: center; gap: var(--sp-2); min-height: 40px; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.qm-toggle input { width: 20px; height: 20px; min-height: 0; accent-color: var(--primary); }
+@media (max-height: 520px) and (orientation: portrait) {
+  .qm-win { gap: var(--sp-2); }
+  .qm-win-hero { padding: var(--sp-2) var(--sp-3); }
+  .qm-toggle { min-height: 30px; font-size: 13px; }
+  .qm-win-score { font-size: clamp(44px, 9dvh, 80px); }
+}
