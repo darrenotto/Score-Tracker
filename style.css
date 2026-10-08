@@ -677,3 +677,6 @@ button.trd-in { min-height: 44px; }
 /* very short viewports (small phones with the browser bars showing): the title block goes first, the sports always stay */
 @media (max-height: 560px) { .fit-screen .menu .page-head { display: none; } }
 @media (max-height: 600px) { .fit-screen .sport-grid .sport-card, .fit-screen .has-resume .sport-grid .sport-card { padding-left: 10px; gap: 5px; } }
+
+/* S2: Undo sits well below the two score zones so a late tap on the bottom of a zone can't hit it */
+.qm-controls { margin-top: var(--sp-2); }

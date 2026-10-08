@@ -2,6 +2,7 @@ import { h, clear, toast, openModal, openSheet, confirmModal } from './dom.js';
 import { sports, getRules, defaultTarget } from './logic/sports.js';
 import { sportInfo, sportOrder } from './logic/sportRules.js';
 import { sportFromPath, captureSource } from './logic/deepLinks.js';
+import { holdAwake, releaseAwake } from './logic/wakeLock.js';
 import { newGame, addPoint, undoPoint, scoreLine } from './logic/scoreLogic.js';
 import * as T from './logic/tournamentLogic.js';
 import * as store from './logic/storageLogic.js';
@@ -204,11 +205,20 @@ function render() {
   document.body.classList.toggle('fit-screen', FIT_SCREENS.indexOf(nav) >= 0);
   clear(app);
   screens[nav]().forEach(n => app.append(n));
+  if (isScoring()) holdAwake(); else releaseAwake();
   if (refocusAdd) {
     refocusAdd = false;
     const input = document.getElementById('addPlayer');
     if (input) input.focus();
   }
+}
+
+// Is a match being scored right now (as opposed to a result / menu screen)? The screen is kept awake only then.
+function isScoring() {
+  if (nav === 'quick') return !!quick && quick.status === 'playing';
+  if (nav === 'tournPlay') return !!tournament && !tournament.finished && !T.currentRound(tournament).winner;
+  if (nav === 'courtPlay') { const m = session && activeCourt ? matchOnCourt(session, activeCourt) : null; return !!m && !m.winner; }
+  return false;
 }
 
 // Ask before leaving a match; progress stays saved and shows up as "Pick up where you left off".
@@ -388,7 +398,7 @@ function quickTap(side) {
   if (quick.game.winner) return;
   if (!quick.game.log.length) quick.startTime = Date.now();                 // the clock starts at the first point
   quick.game = addPoint(quick.game, side, quickRules());
-  beep(prefs.sound, side === 'A' ? 660 : 520); buzz(25);
+  beep(prefs.sound, side === 'A' ? 660 : 520); buzz(30);
   if (quick.game.winner) {
     quick.status = 'finished'; quick.endTime = Date.now();
     saveQuickSafe();
@@ -401,7 +411,7 @@ function quickTap(side) {
 
 function quickUndo() {
   quick.game = undoPoint(quick.game, quickRules());
-  buzz(15); saveQuickSafe(); render();
+  buzz(30); saveQuickSafe(); render();
 }
 
 function quickReset() {
@@ -545,13 +555,13 @@ function tournamentTap(side) {
   if (T.currentRound(tournament).winner) return;
   tournament = T.scorePoint(tournament, side);
   const won = !!T.currentRound(tournament).winner;
-  beep(prefs.sound, won ? 880 : side === 'A' ? 660 : 520, won ? 250 : 70); buzz(won ? [80, 60, 80] : 25);
+  beep(prefs.sound, won ? 880 : side === 'A' ? 660 : 520, won ? 250 : 70); buzz(won ? [80, 60, 80] : 30);
   persistTournament(); render();
 }
 
 function tournamentUndo() {
   tournament = T.undoLastPoint(tournament);
-  buzz(15); persistTournament(); render();
+  buzz(30); persistTournament(); render();
 }
 
 // After a finished game: the next game, or the Champion screen when the series is decided.
@@ -699,11 +709,11 @@ function courtPlayScreen() {
       score: scoreLine(m, ' – '), meta: court.name + '  ·  Round ' + m.round, photos: m.photos,
       primary: { label: 'Finish & Next Match', icon: 'arrow', onClick: () => finishCourtMatch(court.id) },
       secondary: [{ label: 'Photo', icon: 'camera', onClick: () => takeCourtPhoto(court.id) }, { label: 'Courts', icon: 'back', onClick: () => go('courts') }],
-      link: { label: 'Wrong tap? Undo last point', onClick: () => dispatch({ type: 'UNDO', courtId: court.id }) },
+      link: { label: 'Wrong tap? Undo last point', onClick: () => { buzz(30); dispatch({ type: 'UNDO', courtId: court.id }); } },
     })];
   }
   const controls = [
-    { label: 'Undo', icon: 'undo', onClick: () => dispatch({ type: 'UNDO', courtId: court.id }), disabled: !m.log.length, aria: 'Undo last point' },
+    { label: 'Undo', icon: 'undo', onClick: () => { buzz(30); dispatch({ type: 'UNDO', courtId: court.id }); }, disabled: !m.log.length, aria: 'Undo last point' },
     { label: 'Photo' + (m.photos.length ? ' (' + m.photos.length + ')' : ''), icon: 'camera', onClick: () => takeCourtPhoto(court.id), aria: 'Take photo' },
   ];
   if (t.serve && !m.log.length) controls.push({ label: 'Serve', icon: 'reset', onClick: () => dispatch({ type: 'SWAP_SERVE', courtId: court.id }), aria: 'Swap which team serves first' });
@@ -722,7 +732,7 @@ function courtTap(courtId, side) {
   if (!m || m.winner) return;
   dispatch({ type: 'TAP', courtId, side });
   const won = !!(matchOnCourt(session, courtId) || {}).winner;
-  beep(prefs.sound, won ? 880 : side === 'A' ? 660 : 520, won ? 250 : 70); buzz(won ? [80, 60, 80] : 25);
+  beep(prefs.sound, won ? 880 : side === 'A' ? 660 : 520, won ? 250 : 70); buzz(won ? [80, 60, 80] : 30);
 }
 
 // Finish the match: the app has already picked the next group for this court, so go straight to "Court ready".
@@ -797,10 +807,5 @@ else {
   }
   render(); offerResume();
 }
-
-// keep the screen awake during a match
-const wake = () => { try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {} };
-wake();
-document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && wake());
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});

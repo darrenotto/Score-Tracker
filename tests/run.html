@@ -2,14 +2,16 @@
 <html lang="en"><head><meta charset="utf-8"><title>ScoreTracker tests</title>
 <style>body{font:15px system-ui;margin:24px;max-width:760px}.ok{color:#0a7d5c}.bad{color:#b91c1c}pre{background:#f1f5f9;padding:12px;border-radius:8px;overflow:auto}</style></head>
 <body>
-<h1>Social + scheduling simulations</h1>
+<h1>Simulations: social scheduling + undo</h1>
 <p id="status">Running…</p>
 <pre id="out"></pre>
 <script type="module">
-  import { run } from './socialSim.js';
+  import { run as runSocial } from './socialSim.js';
+  import { run as runUndo } from './undoSim.js';
   const t0 = performance.now();
   try {
-    const r = run();
+    const a = runSocial(), b = runUndo();
+    const r = { total: a.total + b.total, passed: a.passed + b.passed, failed: a.failed + b.failed, fails: a.fails.concat(b.fails), stats: { social: a.stats, undo: b.stats }, parts: { social: [a.passed, a.total], undo: [b.passed, b.total] } };
     window.__results = r;
     const s = document.getElementById('status');
     s.textContent = r.passed + ' / ' + r.total + ' checks passed in ' + Math.round(performance.now() - t0) + ' ms';

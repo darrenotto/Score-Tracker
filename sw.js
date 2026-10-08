@@ -1,7 +1,7 @@
 // Offline-first service worker. Everything needed to start and play a match is pre-cached on install, so after
 // one online visit the app (and every sport deep link such as /padel) loads with no signal.
 // Bump CACHE whenever a file changes: old caches are deleted on activate.
-const CACHE = 'scoretracker-v18';
+const CACHE = 'scoretracker-v19';
 const SHELL = 'index.html';
 const ASSETS = [
   SHELL,
@@ -70,6 +70,7 @@ const ASSETS = [
   'src/logic/tennisLogic.js',
   'src/logic/tournamentLogic.js',
   'src/logic/tournamentModes.js',
+  'src/logic/wakeLock.js',
 ];
 
 self.addEventListener('install', e => {
