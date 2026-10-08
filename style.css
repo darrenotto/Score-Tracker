@@ -716,3 +716,18 @@ button.trd-in { min-height: 44px; }
 /* the hero only gives way on a very short landscape phone (568x320) */
 @media (orientation: landscape) and (max-height: 520px) { .fit-screen .menu .hero { display: flex; } .fit-screen .menu .hero > .btn { display: none; } .hero-sub { display: none; } .hero-title { font-size: 20px; } }
 @media (orientation: landscape) and (max-height: 380px) { .fit-screen .menu .hero { display: none; } }
+
+/* fix: sport names hidden after a finished match. The cards had fixed layouts picked by viewport height, so with extra rows
+   above them (Continue + Last Quick Match) a card could end up shorter than its content and overflow:hidden cut the name off.
+   Now each card measures ITSELF: whenever its cell is short it switches to the compact one-row layout, whatever is above it. */
+.fit-screen .sport-cell { container-type: size; }
+@container (max-height: 91px) {
+  .fit-screen .sport-grid .sport-cell .sport-card { flex-direction: row; align-items: center; justify-content: flex-start; padding: 6px 10px; gap: 6px; }
+  .fit-screen .sport-grid .sport-cell .sport-tile { width: 28px; height: 28px; flex-basis: 28px; }
+  .fit-screen .sport-grid .sport-cell .sport-name { font-size: 13px; }
+  .fit-screen .sport-grid .sport-cell .sport-rule { display: none; }
+}
+@container (max-height: 52px) {
+  .fit-screen .sport-grid .sport-cell .sport-card { padding: 2px 8px; }
+  .fit-screen .sport-grid .sport-cell .sport-tile { width: 24px; height: 24px; flex-basis: 24px; }
+}
