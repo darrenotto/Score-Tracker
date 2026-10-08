@@ -607,3 +607,15 @@ button.trd-in { min-height: 44px; }
   .fit-screen .has-resume .sport-grid .sport-name { font-size: 14px; }
   .fit-screen .has-resume .page-sub { display: none; }
 }
+
+/* --- "pick up where you left off": card + ⋯ menu button --- */
+.resume-row { display: flex; align-items: stretch; gap: var(--sp-2); flex: 0 0 auto; }
+.resume-row > .sport-card { flex: 1 1 auto; min-width: 0; width: auto; }
+.resume-more {
+  flex: 0 0 44px; width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  background: var(--panel); color: var(--muted); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm);
+}
+.resume-more:active { transform: scale(.95); }
+@media (hover: hover) { .resume-more:hover { color: var(--text); border-color: var(--muted); } }
+.btn.danger { background: var(--danger-ink); color: #fff; }
+:root[data-theme="dark"] .btn.danger { color: #450a0a; }

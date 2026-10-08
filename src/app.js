@@ -220,23 +220,27 @@ function sportsScreen() {
   ];
 }
 
+const removeQuick = () => { quick = null; store.saveQuick(null); render(); };
+const removeTournament = () => { tournament = null; store.clearTournamentStorage(); render(); };
+const removeSession = () => { session = null; store.clearSessionStorage(); render(); };
+
 function resumeItems() {
   const items = [];
   if (quick) {
     const g = quick.game, line = quick.nameA + ' ' + scoreLine(g) + ' ' + quick.nameB;
     items.push(quick.status === 'playing'
-      ? { icon: 'play', title: 'Resume Quick Match', sub: sportName(quick.sport) + ' · ' + line, onClick: () => go('quick') }
-      : { icon: 'flag', title: 'Last Quick Match', sub: sportName(quick.sport) + ' · ' + line, onClick: () => go('quickSummary') });
+      ? { icon: 'play', title: 'Resume Quick Match', sub: sportName(quick.sport) + ' · ' + line, onClick: () => go('quick'), onRemove: removeQuick, removeLabel: 'Delete this match', removeText: 'The unfinished match and its score will be deleted from this device.' }
+      : { icon: 'flag', title: 'Last Quick Match', sub: sportName(quick.sport) + ' · ' + line, onClick: () => go('quickSummary'), onRemove: removeQuick, removeLabel: 'Remove', removeText: 'The result will be removed from this device.' });
   }
   if (tournament) {
     items.push(tournament.finished
-      ? { icon: 'trophy', title: 'Tournament results', sub: tournament.name, onClick: () => go('tournSummary') }
-      : { icon: 'play', title: 'Resume Tournament', sub: tournament.name + ' · ' + T.unitOf(tournament) + ' ' + T.currentRound(tournament).round + ' of ' + tournament.bestOf, onClick: () => go('tourn') });
+      ? { icon: 'trophy', title: 'Tournament results', sub: tournament.name, onClick: () => go('tournSummary'), onRemove: removeTournament, removeLabel: 'Remove', removeText: 'The results will be removed from this device.' }
+      : { icon: 'play', title: 'Resume Tournament', sub: tournament.name + ' · ' + T.unitOf(tournament) + ' ' + T.currentRound(tournament).round + ' of ' + tournament.bestOf, onClick: () => go('tourn'), onRemove: removeTournament, removeLabel: 'Delete this tournament', removeText: 'The unfinished tournament and all its scores will be deleted from this device.' });
   }
   if (session) {
     items.push(session.status === 'completed'
-      ? { icon: 'trophy', title: 'Court session results', sub: session.name, onClick: () => go('courtSummary') }
-      : { icon: 'play', title: 'Resume Court Session', sub: session.name + ' · ' + sportName(session.sport), onClick: () => go('courts') });
+      ? { icon: 'trophy', title: 'Court session results', sub: session.name, onClick: () => go('courtSummary'), onRemove: removeSession, removeLabel: 'Remove', removeText: 'The results will be removed from this device.' }
+      : { icon: 'play', title: 'Resume Court Session', sub: session.name + ' · ' + sportName(session.sport), onClick: () => go('courts'), onRemove: removeSession, removeLabel: 'Delete this session', removeText: 'The unfinished session, its queue and all its scores will be deleted from this device.' });
   }
   return items;
 }
