@@ -1,6 +1,7 @@
 import { h, clear, toast, openModal, openSheet, confirmModal } from './dom.js';
 import { sports, getRules, defaultTarget } from './logic/sports.js';
 import { sportInfo, sportOrder } from './logic/sportRules.js';
+import { sportFromPath, captureSource } from './logic/deepLinks.js';
 import { newGame, addPoint, undoPoint, scoreLine } from './logic/scoreLogic.js';
 import * as T from './logic/tournamentLogic.js';
 import * as store from './logic/storageLogic.js';
@@ -763,8 +764,6 @@ function takeCourtPhoto(courtId) {
 }
 
 // ---------- boot ----------
-render();
-
 // An unfinished match with points on the board (app was refreshed, closed or killed): offer to pick it up.
 function offerResume() {
   if (!quick || quick.status !== 'playing' || !quick.game.log.length || nav !== 'sports') return;
@@ -777,7 +776,27 @@ function offerResume() {
     onNo: () => { if (quick === q) removeQuick(); },
   });
 }
-offerResume();
+
+// /padel (a QR sticker, a bio link, a search result) opens a Quick Match for that sport, ready to score, with no other screens.
+// Home is the entry underneath it, so Back from the match lands on the sport menu. An unknown path is just the home screen.
+function openDeepLink(sport) {
+  try { history.replaceState({ screen: 'sports' }, '', '/'); } catch (e) {}      // the address bar goes back to "/" so a refresh doesn't restart anything
+  nav = 'sports';
+  render();
+  const resumable = quick && quick.status === 'playing' && quick.game.log.length && quick.sport === sport;
+  if (resumable) go('quick'); else startQuickMatch(sport);
+}
+
+captureSource(location.search);                                  // first-touch + latest ?src= (used by analytics)
+const deepSport = sportFromPath(location.pathname);
+if (deepSport) openDeepLink(deepSport);
+else {
+  if (location.pathname !== '/') {                                // an unknown path falls back to the home screen
+    nav = 'sports';
+    try { history.replaceState({ screen: 'sports' }, '', '/'); } catch (e) {}
+  }
+  render(); offerResume();
+}
 
 // keep the screen awake during a match
 const wake = () => { try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {} };

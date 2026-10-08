@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/:sport(badminton|padel|tennis|volleyball|table-tennis|squash|basketball)", "destination": "/index.html" },
+    { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
+  ]
+}
