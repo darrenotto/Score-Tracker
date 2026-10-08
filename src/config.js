@@ -8,8 +8,8 @@ export const SITE_URL = '';
 export const GA_MEASUREMENT_ID = 'G-XXXXXXX';
 
 // Where feedback goes: create a free form at formspree.io, copy its address here. Formspree emails you every submission.
-// Until it is a real address, feedback is kept on the player's device and sent once you set it.
-export const FEEDBACK_ENDPOINT = 'https://formspree.io/f/XXXXXXX';
+// (If it is ever set back to a placeholder, feedback is kept on the player's device and sent once a real address is set.)
+export const FEEDBACK_ENDPOINT = 'https://formspree.io/f/xeaeapjd';
 
 // Sent with every feedback message.
 export const APP_VERSION = '1.0';
