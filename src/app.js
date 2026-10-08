@@ -56,6 +56,19 @@ let courtReady = null;                              // { courtId, recap } shown 
 
 const savePrefs = () => store.savePrefs(prefs);
 const saveQuick = () => store.saveQuick(quick);
+
+// Save the match after every point/undo. If the browser refuses (storage full, usually because of photos) the SCORE
+// is still saved: we retry without the photos and tell the user once. Photo adds use plain saveQuick() so they can roll back.
+let warnedStorage = false;
+function saveQuickSafe() {
+  if (store.saveQuick(quick)) return true;
+  const ok = store.saveQuick(Object.assign({}, quick, { photos: [] }));
+  if (!warnedStorage) {
+    warnedStorage = true;
+    toast(ok ? 'Storage is full — the score is safe, but photos could not be saved' : 'Storage is full — this match could not be saved on this device');
+  }
+  return ok;
+}
 const persistTournament = () => store.saveTournamentToStorage(tournament);
 const sportName = k => sports[k].name;
 const isDark = () => (prefs.dark != null ? prefs.dark : !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches));
@@ -78,7 +91,7 @@ const FIT_SCREENS = ['sports', 'quick', 'quickSummary', 'tournSetup', 'tourn', '
 function initialScreen() {
   if (!prefs.user) return 'signin';
   const s = prefs.screen;
-  if (s === 'quick' && quick && quick.status === 'playing') return s;
+  if (s === 'quick' && quick && quick.status === 'playing' && !quick.game.log.length) return s;   // (a match with points asks "Resume?" instead, see boot)
   if (s === 'quickSummary' && quick && quick.status === 'finished') return s;
   if ((s === 'tourn' || s === 'tournPlay') && tournament && !tournament.finished) return s;
   if (s === 'tournSummary' && tournament && tournament.finished) return s;
@@ -288,7 +301,7 @@ function startQuick() {
   confirmReplace(quick && (quick.status === 'playing' || quick.photos.length), 'quick match', () => {
     quick = { sport: ctx.sport, target: ctx.target, noAd: ctx.noAd, serve, format: doubles ? 'doubles' : 'singles',
       playersA: doubles ? pa : [], playersB: doubles ? pb : [], nameA: a, nameB: b, game: newGame(), status: 'playing', startTime: Date.now(), endTime: null, photos: [] };
-    saveQuick();
+    saveQuickSafe();
     go('quick');
   });
 }
@@ -309,21 +322,21 @@ function quickTap(side) {
   beep(prefs.sound, side === 'A' ? 660 : 520); buzz(25);
   if (quick.game.winner) {
     quick.status = 'finished'; quick.endTime = Date.now();
-    saveQuick();
+    saveQuickSafe();
     beep(prefs.sound, 880, 250); buzz([80, 60, 80]);
     go('quickSummary');
   } else {
-    saveQuick(); render();
+    saveQuickSafe(); render();
   }
 }
 
 function quickUndo() {
   quick.game = undoPoint(quick.game, quickRules());
-  buzz(15); saveQuick(); render();
+  buzz(15); saveQuickSafe(); render();
 }
 
 function quickReset() {
-  const reset = () => { quick.game = newGame(); quick.startTime = Date.now(); saveQuick(); render(); };
+  const reset = () => { quick.game = newGame(); quick.startTime = Date.now(); saveQuickSafe(); render(); };
   if (quick.game.log.length) confirmModal({ title: 'Reset the score?', text: 'Both scores will go back to 0–0.', yes: 'Reset', onYes: reset });
   else reset();
 }
@@ -345,10 +358,10 @@ function quickSummaryScreen() {
       onShare: () => share(quickShareText(quick, sportName(quick.sport))),
       onRematch: () => confirmReplace(quick.photos.length, 'photos from this match', () => {
         quick = Object.assign({}, quick, { game: newGame(), status: 'playing', startTime: Date.now(), endTime: null, photos: [] });
-        saveQuick(); go('quick');
+        saveQuickSafe(); go('quick');
       }),
       onMenu: () => go('sports'),
-      onUndo: () => { quick.game = undoPoint(quick.game, quickRules()); quick.status = 'playing'; quick.endTime = null; saveQuick(); go('quick'); },
+      onUndo: () => { quick.game = undoPoint(quick.game, quickRules()); quick.status = 'playing'; quick.endTime = null; saveQuickSafe(); go('quick'); },
       onDeletePhoto: i => { quick.photos = quick.photos.filter((_, j) => j !== i); saveQuick(); render(); },
     }),
   ];
@@ -684,9 +697,23 @@ function takeCourtPhoto(courtId) {
 // ---------- boot ----------
 render();
 
+// An unfinished match with points on the board (app was refreshed, closed or killed): offer to pick it up.
+function offerResume() {
+  if (!quick || quick.status !== 'playing' || !quick.game.log.length || nav !== 'sports') return;
+  const q = quick;
+  confirmModal({
+    title: 'Resume match?',
+    text: sportName(q.sport) + ' · ' + q.nameA + ' ' + scoreLine(q.game, ' – ') + ' ' + q.nameB,
+    yes: 'Resume', no: 'Discard', danger: false,
+    onYes: () => go('quick'),
+    onNo: () => { if (quick === q) removeQuick(); },
+  });
+}
+offerResume();
+
 // keep the screen awake during a match
 const wake = () => { try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {} };
 wake();
 document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && wake());
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});

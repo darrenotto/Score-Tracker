@@ -1,32 +1,17 @@
-﻿const CACHE = 'scoretracker-v14';
+// Offline-first service worker. Everything needed to start and play a match is pre-cached on install, so after
+// one online visit the app (and every sport deep link such as /padel) loads with no signal.
+// Bump CACHE whenever a file changes: old caches are deleted on activate.
+const CACHE = 'scoretracker-v15';
+const SHELL = 'index.html';
 const ASSETS = [
-  './',
-  'index.html',
+  SHELL,
   'style.css',
   'manifest.json',
   'privacy.html',
+  'icon-192.png',
+  'icon-512.png',
+  'apple-touch-icon.png',
   'src/app.js',
-  'src/dom.js',
-  'src/logic/authLogic.js',
-  'src/logic/courtAssignmentLogic.js',
-  'src/logic/feedback.js',
-  'src/logic/matchCompletionLogic.js',
-  'src/logic/photoLogic.js',
-  'src/logic/playerQueueLogic.js',
-  'src/logic/rankingLogic.js',
-  'src/logic/roundGenerationLogic.js',
-  'src/logic/schedulingLogic.js',
-  'src/logic/scoreLogic.js',
-  'src/logic/serveLogic.js',
-  'src/logic/sessionReducer.js',
-  'src/logic/sessionState.js',
-  'src/logic/socialLogic.js',
-  'src/logic/sportRules.js',
-  'src/logic/sports.js',
-  'src/logic/storageLogic.js',
-  'src/logic/tennisLogic.js',
-  'src/logic/tournamentLogic.js',
-  'src/logic/tournamentModes.js',
   'src/components/AdBanner.js',
   'src/components/Buttons.js',
   'src/components/CourtCard.js',
@@ -63,6 +48,27 @@ const ASSETS = [
   'src/components/TournamentSetup.js',
   'src/components/TournamentSummary.js',
   'src/components/WinnerView.js',
+  'src/dom.js',
+  'src/logic/authLogic.js',
+  'src/logic/courtAssignmentLogic.js',
+  'src/logic/feedback.js',
+  'src/logic/matchCompletionLogic.js',
+  'src/logic/photoLogic.js',
+  'src/logic/playerQueueLogic.js',
+  'src/logic/rankingLogic.js',
+  'src/logic/roundGenerationLogic.js',
+  'src/logic/schedulingLogic.js',
+  'src/logic/scoreLogic.js',
+  'src/logic/serveLogic.js',
+  'src/logic/sessionReducer.js',
+  'src/logic/sessionState.js',
+  'src/logic/socialLogic.js',
+  'src/logic/sportRules.js',
+  'src/logic/sports.js',
+  'src/logic/storageLogic.js',
+  'src/logic/tennisLogic.js',
+  'src/logic/tournamentLogic.js',
+  'src/logic/tournamentModes.js',
 ];
 
 self.addEventListener('install', e => {
@@ -75,14 +81,18 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// Same-origin: serve cache instantly, refresh it in the background (works offline mid-match, picks up updates next load).
-// Ad scripts and other cross-origin requests go straight to the network.
+// A page address with no file extension (/, /padel, /table-tennis) is the app shell.
+const isShellPath = p => p === '/' || !/\.[a-z0-9]+$/i.test(p);
+
+// Same-origin: answer from the cache instantly and refresh it in the background (so updates arrive on the next load).
+// Cross-origin requests (ads, analytics, Google sign-in) are left alone: offline they simply fail and never block scoring.
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+  const shell = e.request.mode === 'navigate' && isShellPath(url.pathname);
   e.respondWith(caches.open(CACHE).then(cache =>
-    cache.match(e.request).then(hit => {
-      const net = fetch(e.request).then(res => { if (res.ok) cache.put(e.request, res.clone()); return res; }).catch(() => hit);
+    (shell ? cache.match(SHELL) : cache.match(e.request, { ignoreSearch: true })).then(hit => {
+      const net = fetch(shell ? SHELL : e.request).then(res => { if (res.ok) cache.put(shell ? SHELL : e.request, res.clone()); return res; }).catch(() => hit);
       return hit || net;
     })));
 });
