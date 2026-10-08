@@ -5,6 +5,7 @@ import { sportFromPath, captureSource } from './logic/deepLinks.js';
 import { holdAwake, releaseAwake } from './logic/wakeLock.js';
 import { endManually, reopen, rematch, quickName } from './logic/quickMatch.js';
 import { shareResult } from './logic/shareResult.js';
+import { track, initAnalytics, setContextProvider } from './logic/analytics.js';
 import { newGame, addPoint, undoPoint, scoreLine } from './logic/scoreLogic.js';
 import * as T from './logic/tournamentLogic.js';
 import * as store from './logic/storageLogic.js';
@@ -261,7 +262,7 @@ function resumeItems() {
   if (quick) {
     const g = quick.game, line = quick.nameA + ' ' + scoreLine(g) + ' ' + quick.nameB;
     items.push(quick.status === 'playing'
-      ? { icon: 'play', title: 'Resume Quick Match', sub: sportName(quick.sport) + ' · ' + line, onClick: () => go('quick'), onRemove: removeQuick, removeLabel: 'Delete this match', removeText: 'The unfinished match and its score will be deleted from this device.' }
+      ? { icon: 'play', title: 'Resume Quick Match', sub: sportName(quick.sport) + ' · ' + line, onClick: () => { track('match_resumed'); go('quick'); }, onRemove: removeQuick, removeLabel: 'Delete this match', removeText: 'The unfinished match and its score will be deleted from this device.' }
       : { icon: 'flag', title: 'Last Quick Match', sub: sportName(quick.sport) + ' · ' + line, onClick: () => go('quickSummary'), onRemove: removeQuick, removeLabel: 'Remove', removeText: 'The result will be removed from this device.' });
   }
   if (tournament) {
@@ -278,7 +279,7 @@ function resumeItems() {
 }
 
 // Rules open only when asked for (the ? on a sport card and on the scoring screen) — never automatically.
-function openRules(sport) { SportRulesPopup({ sport }); }
+function openRules(sport) { track('rules_opened', { sport }); SportRulesPopup({ sport }); }
 
 // Tournament / court session still need a sport: ask once, in a small sheet (the last sport is listed first).
 function pickSport(title, onPick) {
@@ -386,6 +387,7 @@ function renameTeam(side) {
   setTimeout(() => { input.focus(); input.select(); }, 50);
 }
 
+function trackFinished(manual) { track('match_finished', { duration_sec: Math.max(1, Math.round((quick.endTime - quick.startTime) / 1000)), ended_manually: !!manual }); }
 let swapNext = false;                                 // "Swap sides" on the result screen, for the next rematch
 
 // "End" on the scoreboard: finish now, with whoever is ahead as the winner (a level score has no winner to crown).
@@ -397,7 +399,7 @@ function endQuickMatch() {
   confirmModal({
     title: 'End the match here?', yes: 'End match', no: 'Keep playing', danger: false,
     text: quickName(quick, w) + ' wins ' + scoreLine(quick.game, ' – ') + '. You can still go back to the match from the result.',
-    onYes: () => { quick = next; saveQuickSafe(); go('quickSummary'); },
+    onYes: () => { quick = next; trackFinished(true); saveQuickSafe(); go('quickSummary'); },
   });
 }
 
@@ -414,11 +416,12 @@ function quickScreen() {
 
 function quickTap(side) {
   if (quick.game.winner) return;
-  if (!quick.game.log.length) quick.startTime = Date.now();                 // the clock starts at the first point
+  if (!quick.game.log.length) { quick.startTime = Date.now(); track('match_started'); }   // the clock starts at the first point
   quick.game = addPoint(quick.game, side, quickRules());
   beep(prefs.sound, side === 'A' ? 660 : 520); buzz(30);
   if (quick.game.winner) {
     quick.status = 'finished'; quick.endTime = Date.now();
+    trackFinished(false);
     saveQuickSafe();
     beep(prefs.sound, 880, 250); buzz([80, 60, 80]);
     go('quickSummary');
@@ -452,8 +455,9 @@ function quickSummaryScreen() {
     header(sportInfo[quick.sport].name.toUpperCase() + ' | Quick Match', () => go('sports')),
     QuickMatchSummary({
       q: quick, swap: swapNext, onSwap: v => { swapNext = v; },
-      onShare: () => shareResult(quick),
+      onShare: () => shareResult(quick).then(how => { if (how === 'native' || how === 'download') track('result_shared', { method: how }); }),
       onRematch: () => confirmReplace(quick.photos.length, 'photos from this match', () => {
+        track('rematch_clicked');
         quick = rematch(quick, { swap: swapNext }, Date.now());
         swapNext = false;                                       // the toggle is for one rematch only
         saveQuickSafe(); go('quick');
@@ -577,6 +581,7 @@ function tournPlayScreen() {
 
 function tournamentTap(side) {
   if (T.currentRound(tournament).winner) return;
+  if (tournament.rounds.length === 1 && !T.currentRound(tournament).log.length) track('match_started');
   tournament = T.scorePoint(tournament, side);
   const won = !!T.currentRound(tournament).winner;
   beep(prefs.sound, won ? 880 : side === 'A' ? 660 : 520, won ? 250 : 70); buzz(won ? [80, 60, 80] : 30);
@@ -592,6 +597,7 @@ function tournamentUndo() {
 function advance() {
   if (tournament.matchWinner) {
     tournament = T.finishTournament(tournament);
+    track('match_finished', { ended_manually: false });
     persistTournament(); go('tournSummary');
   } else {
     tournament = T.advanceRound(tournament);
@@ -754,6 +760,7 @@ function courtPlayScreen() {
 function courtTap(courtId, side) {
   const m = matchOnCourt(session, courtId);
   if (!m || m.winner) return;
+  if (!m.log.length) track('match_started');
   dispatch({ type: 'TAP', courtId, side });
   const won = !!(matchOnCourt(session, courtId) || {}).winner;
   beep(prefs.sound, won ? 880 : side === 'A' ? 660 : 520, won ? 250 : 70); buzz(won ? [80, 60, 80] : 30);
@@ -798,6 +805,13 @@ function takeCourtPhoto(courtId) {
 }
 
 // ---------- boot ----------
+// analytics context: which sport and mode an event belongs to
+setContextProvider(() => {
+  if (nav.indexOf('tourn') === 0) return { sport: tournament && tournament.sport, mode: 'tournament' };
+  if (nav.indexOf('court') === 0) return { sport: session && session.sport, mode: 'court' };
+  return { sport: (quick && (nav === 'quick' || nav === 'quickSummary') ? quick.sport : null) || ctx.sport, mode: 'quick' };
+});
+initAnalytics();
 // An unfinished match with points on the board (app was refreshed, closed or killed): offer to pick it up.
 function offerResume() {
   if (!quick || quick.status !== 'playing' || !quick.game.log.length || nav !== 'sports') return;
@@ -806,7 +820,7 @@ function offerResume() {
     title: 'Resume match?',
     text: sportName(q.sport) + ' · ' + q.nameA + ' ' + scoreLine(q.game, ' – ') + ' ' + q.nameB,
     yes: 'Resume', no: 'Discard', danger: false,
-    onYes: () => go('quick'),
+    onYes: () => { track('match_resumed'); go('quick'); },
     onNo: () => { if (quick === q) removeQuick(); },
   });
 }
@@ -818,7 +832,7 @@ function openDeepLink(sport) {
   nav = 'sports';
   render();
   const resumable = quick && quick.status === 'playing' && quick.game.log.length && quick.sport === sport;
-  if (resumable) go('quick'); else startQuickMatch(sport);
+  if (resumable) { track('match_resumed'); go('quick'); } else startQuickMatch(sport);
 }
 
 captureSource(location.search);                                  // first-touch + latest ?src= (used by analytics)
