@@ -3,6 +3,8 @@ import { sports, getRules, defaultTarget } from './logic/sports.js';
 import { sportInfo, sportOrder } from './logic/sportRules.js';
 import { sportFromPath, captureSource, seoTitle } from './logic/deepLinks.js';
 import { holdAwake, releaseAwake } from './logic/wakeLock.js';
+import { openFeedback } from './components/FeedbackModal.js';
+import { snoozeFeedback, countFinishedMatch, shouldShowRating, flushQueue } from './logic/feedbackLogic.js';
 import { endManually, reopen, rematch, quickName } from './logic/quickMatch.js';
 import { shareResult } from './logic/shareResult.js';
 import { track, initAnalytics, setContextProvider } from './logic/analytics.js';
@@ -246,7 +248,7 @@ function sportsScreen() {
     header(null, null, true),
     SportSelectionMenu({
       resume: resumeItems(), lastSport: prefs.lastSport && sports[prefs.lastSport] ? prefs.lastSport : null,
-      onPick: startQuickMatch, onHelp: openRules,
+      onPick: startQuickMatch, onHelp: openRules, onFeedback: () => openFeedbackModal('home_card', 0),
       onTournament: () => pickSport('Run a tournament', sport => { beginMode(sport, 'tournMode', () => {}); }),
       onCourts: () => pickSport('Court session', sport => { beginMode(sport, 'courtSetup', () => { sessionDraft = newSessionDraft(); courtStep = 0; }); }),
     }),
@@ -276,6 +278,17 @@ function resumeItems() {
       : { icon: 'play', title: 'Resume Court Session', sub: session.name + ' · ' + sportName(session.sport), onClick: () => go('courts'), onRemove: removeSession, removeLabel: 'Delete this session', removeText: 'The unfinished session, its queue and all its scores will be deleted from this device.' });
   }
   return items;
+}
+
+// Feedback (S5): the same modal from the home card and from the stars on the result screen.
+// Sending it, "Not now" and the close button all pause the result-screen stars for 30 days.
+function openFeedbackModal(source, rating) {
+  openFeedback({
+    source, rating, sport: quick ? quick.sport : prefs.lastSport,
+    onSent: () => snoozeFeedback(30),
+    onDismiss: () => snoozeFeedback(30),
+    onClose: () => { if (nav === 'quickSummary') render(); },        // the stars disappear as soon as the modal is done
+  });
 }
 
 // Rules open only when asked for (the ? on a sport card and on the scoring screen) — never automatically.
@@ -812,6 +825,10 @@ setContextProvider(() => {
   return { sport: (quick && (nav === 'quick' || nav === 'quickSummary') ? quick.sport : null) || ctx.sport, mode: 'quick' };
 });
 initAnalytics();
+
+// feedback that could not be sent (offline) is retried now and whenever the connection comes back
+flushQueue().catch(() => {});
+window.addEventListener('online', () => { flushQueue().catch(() => {}); });
 // An unfinished match with points on the board (app was refreshed, closed or killed): offer to pick it up.
 function offerResume() {
   if (!quick || quick.status !== 'playing' || !quick.game.log.length || nav !== 'sports') return;

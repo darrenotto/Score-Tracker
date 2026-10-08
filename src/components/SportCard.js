@@ -4,11 +4,12 @@ import { StatusBadge } from './StatusBadge.js';
 import { sportAccent } from '../logic/sportRules.js';
 
 // One tappable card (a real <button>), used for sports, for "pick up where you left off" and for tournament modes.
-// o: { sport?, icon? (icon name, for non-sport cards), title, sub, onClick, resume? (compact row layout), badge? (e.g. 'COMING SOON') }
+// o: { sport?, icon? (icon name, for non-sport cards), title, sub, onClick, resume? (compact row layout), badge? (e.g. 'COMING SOON'),
+//      chevron? (show a › on the right), tileClass? (extra class for the icon tile) }
 export function SportCard(o) {
   const tile = o.sport
     ? h('span', { class: 'sport-tile' }, sportIcon(o.sport, 26))
-    : h('span', { class: 'sport-tile resume-tile', 'aria-hidden': 'true' }, icon(o.icon, 22));   // 'play' | 'flag' | 'trophy' ...
+    : h('span', { class: 'sport-tile resume-tile' + (o.tileClass ? ' ' + o.tileClass : ''), 'aria-hidden': 'true' }, icon(o.icon, 22));   // 'play' | 'flag' | 'trophy' ...
   return h('button', {
     type: 'button',
     class: 'sport-card' + (o.resume ? ' resume' : ''),
@@ -18,5 +19,6 @@ export function SportCard(o) {
   },
     tile,
     h('span', { class: 'sport-text' }, h('span', { class: 'sport-name' }, o.title), h('span', { class: 'sport-rule' }, o.sub)),
-    o.badge ? h('span', { class: 'card-badge' }, StatusBadge('upcoming', o.badge)) : null);
+    o.badge ? h('span', { class: 'card-badge' }, StatusBadge('upcoming', o.badge)) : null,
+    o.chevron ? h('span', { class: 'card-chevron', 'aria-hidden': 'true' }, icon('chevron', 20)) : null);
 }

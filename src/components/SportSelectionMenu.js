@@ -15,7 +15,7 @@ function openRemoveSheet(r) {
 
 // The home screen. Tapping a sport starts a Quick Match for it straight away; the ? on each card shows its rules.
 // o: { resume: [{icon,title,sub,onClick,onRemove?,removeLabel?,removeText?}], lastSport?, onPick(sportKey), onHelp(sportKey),
-//      onTournament(), onCourts() }
+//      onTournament(), onCourts(), onFeedback() }
 export function SportSelectionMenu(o) {
   const cont = o.lastSport
     ? SportCard({ icon: 'play', title: 'Continue: ' + sportInfo[o.lastSport].name, sub: 'Start a new Quick Match', resume: true, onClick: () => o.onPick(o.lastSport) })
@@ -52,5 +52,8 @@ export function SportSelectionMenu(o) {
         h('button', { type: 'button', class: 'card-help', 'aria-label': 'Rules for ' + sportInfo[k].name, onclick: () => o.onHelp(k) }, icon('help', 18))))),
     h('div', { class: 'home-links' },
       h('button', { type: 'button', class: 'link', onclick: o.onTournament }, 'Run a tournament →'),
-      h('button', { type: 'button', class: 'link', onclick: o.onCourts }, 'Court session →')));
+      h('button', { type: 'button', class: 'link', onclick: o.onCourts }, 'Court session →')),
+    h('section', { class: 'fb-home', 'aria-label': 'Feedback' },
+      h('h2', { class: 'eyebrow' }, 'Help make ScoreTracker better'),
+      SportCard({ icon: 'chat', tileClass: 'fb-tile', title: 'Tell me what you think', sub: 'Ideas, bugs, or a sport you want · 10 sec', resume: true, chevron: true, onClick: o.onFeedback })));
 }

@@ -731,3 +731,46 @@ button.trd-in { min-height: 44px; }
   .fit-screen .sport-grid .sport-cell .sport-card { padding: 2px 8px; }
   .fit-screen .sport-grid .sport-cell .sport-tile { width: 24px; height: 24px; flex-basis: 24px; }
 }
+
+/* ---------- S5: in-app feedback (reuses the Rules modal: .modal.rules / .rules-head / .rules-body / .rules-foot) ---------- */
+.feedback .rules-body { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
+.fb-label { font-size: 14px; font-weight: 700; margin-top: 6px; }
+.fb-stars { display: flex; gap: 8px; }
+.fb-star { flex: 1 1 0; min-width: 0; height: 44px; min-height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-md); background: var(--btn); color: var(--faint); }
+.fb-star.on { background: #FFF4D6; color: var(--warning); }                     /* the one place a fixed colour is used: the star */
+.fb-star.on svg { fill: currentColor; }
+.fb-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.fb-chip { min-height: 38px; padding: 0 14px; border-radius: var(--r-pill); background: var(--btn); border: 1px solid transparent; color: var(--text); font-size: 14px; font-weight: 600; }
+.fb-chip.on { border-color: var(--primary); background: var(--primary-soft); color: var(--primary-ink); }
+.fb-field { display: block; position: relative; }
+.fb-field textarea, .fb-field input[type=email] { display: block; width: 100%; padding: 10px 12px; font: inherit; color: var(--text);
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); }
+.fb-field textarea { min-height: 84px; resize: vertical; }
+.fb-field input[type=email] { min-height: 48px; }
+.fb-sr, .fb-hp { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; opacity: 0; }
+.fb-hp { left: -9999px; }
+.fb-error { margin-top: 4px; font-size: 13px; color: var(--danger-ink); }
+.fb-check { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; cursor: pointer; }
+.fb-check input { width: 20px; height: 20px; min-height: 0; flex: 0 0 20px; accent-color: var(--primary); }
+.fb-thanks { padding: 36px 8px; text-align: center; font-size: 18px; font-weight: 700; }
+.fb-thanks p { margin: 0; }
+.feedback .rules-foot button.primary:disabled { opacity: .5; }
+
+/* home: "Help make ScoreTracker better" */
+.fb-home { display: flex; flex-direction: column; gap: var(--sp-1); flex: 0 0 auto; }
+.fb-home .eyebrow { margin: 0; }
+.sport-card .card-chevron { margin-left: auto; flex: 0 0 auto; color: var(--faint); display: inline-flex; }
+.sport-card .sport-tile.fb-tile { background: var(--primary-soft); color: var(--primary-ink); }
+@media (max-height: 560px) { .fb-home .eyebrow { display: none; } }
+
+/* result screen: rating row inside the winner card */
+.qm-rate { width: 100%; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); border-top-color: color-mix(in srgb, currentColor 15%, transparent);
+  display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.qm-rate-prompt { color: var(--muted); font-size: 14px; font-weight: 600; }
+.qm-rate-stars { display: flex; gap: 8px; }
+.qm-rate-star { width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.65); color: var(--faint); box-shadow: var(--shadow-sm); }
+:root[data-theme="dark"] .qm-rate-star { background: rgba(255,255,255,.12); }
+.qm-rate-star.on { color: var(--warning); }
+.qm-rate-star.on svg { fill: currentColor; }

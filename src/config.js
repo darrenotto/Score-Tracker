@@ -7,6 +7,13 @@ export const SITE_URL = '';
 // Google Analytics 4 measurement ID (Admin > Data streams > your web stream). While it is the placeholder, analytics are off.
 export const GA_MEASUREMENT_ID = 'G-XXXXXXX';
 
+// Where feedback goes: create a free form at formspree.io, copy its address here. Formspree emails you every submission.
+// Until it is a real address, feedback is kept on the player's device and sent once you set it.
+export const FEEDBACK_ENDPOINT = 'https://formspree.io/f/XXXXXXX';
+
+// Sent with every feedback message.
+export const APP_VERSION = '1.0';
+
 const PLACEHOLDER_SITE = 'https://your-site.vercel.app';
 
 export function siteUrl() {

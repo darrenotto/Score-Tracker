@@ -1,7 +1,7 @@
 // Offline-first service worker. Everything needed to start and play a match is pre-cached on install, so after
 // one online visit the app (and every sport deep link such as /padel) loads with no signal.
 // Bump CACHE whenever a file changes: old caches are deleted on activate.
-const CACHE = 'scoretracker-v26';
+const CACHE = 'scoretracker-v28';
 const SHELL = 'index.html';
 const ASSETS = [
   SHELL,
@@ -24,6 +24,7 @@ const ASSETS = [
   'src/components/CourtCard.js',
   'src/components/CourtDashboard.js',
   'src/components/CourtReady.js',
+  'src/components/FeedbackModal.js',
   'src/components/Header.js',
   'src/components/Icons.js',
   'src/components/MatchCard.js',
@@ -62,6 +63,7 @@ const ASSETS = [
   'src/logic/courtAssignmentLogic.js',
   'src/logic/deepLinks.js',
   'src/logic/feedback.js',
+  'src/logic/feedbackLogic.js',
   'src/logic/matchCompletionLogic.js',
   'src/logic/photoLogic.js',
   'src/logic/playerQueueLogic.js',
