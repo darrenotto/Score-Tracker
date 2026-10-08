@@ -16,10 +16,8 @@ export function AdBanner(position) {
   const wrap = h('div', { class: 'ad-wrap', role: 'complementary', 'aria-label': 'Advertisement' },
     h('span', { class: 'ad-label' }, 'Advertisement'), slot);
 
-  if (!AD_CONFIG.enabled) {
-    slot.append(h('span', { class: 'ad-empty' }, 'Ad space'));
-    return wrap;
-  }
+  if (!AD_CONFIG.enabled) return h('span', { hidden: true });   // no placeholder box while ads are off: the room goes to the app
+
   if (!scriptAdded) {
     scriptAdded = true;
     document.head.append(h('script', { async: true, crossorigin: 'anonymous',

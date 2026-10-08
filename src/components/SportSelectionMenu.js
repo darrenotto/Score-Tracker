@@ -13,21 +13,34 @@ function openRemoveSheet(r) {
       SecondaryButton('Keep it', () => sheet.close())));
 }
 
-// o: { resume: [{icon,title,sub,onClick,onRemove?,removeLabel?,removeText?}], onPick(sportKey) }
+// The home screen. Tapping a sport starts a Quick Match for it straight away; the ? on each card shows its rules.
+// o: { resume: [{icon,title,sub,onClick,onRemove?,removeLabel?,removeText?}], lastSport?, onPick(sportKey), onHelp(sportKey),
+//      onTournament(), onCourts() }
 export function SportSelectionMenu(o) {
-  return h('div', { class: 'screen menu' + (o.resume.length ? ' has-resume' : '') },
+  const cont = o.lastSport
+    ? SportCard({ icon: 'play', title: 'Continue: ' + sportInfo[o.lastSport].name, sub: 'Start a new Quick Match', resume: true, onClick: () => o.onPick(o.lastSport) })
+    : null;
+  const resumeCards = o.resume.map(r => {
+    const card = SportCard(Object.assign({ resume: true }, r));
+    if (!r.onRemove) return card;
+    // the ⋯ button sits beside the card (a button can't live inside a button) and opens a small "remove" sheet
+    const more = h('button', { type: 'button', class: 'resume-more', 'aria-label': 'Options for ' + r.title, onclick: () => openRemoveSheet(r) }, icon('more', 22));
+    return h('div', { class: 'resume-row' }, card, more);
+  });
+  const any = cont || resumeCards.length;
+
+  return h('div', { class: 'screen menu' + (any ? ' has-resume' : '') },
     h('div', { class: 'page-head' },
       h('h1', { class: 'page-title' }, 'What are we playing?'),
-      h('p', { class: 'page-sub' }, 'Pick a sport to get started.')),
-    o.resume.length ? h('section', { class: 'resume-section', 'aria-label': 'Unfinished matches' },
-      h('h2', { class: 'eyebrow' }, 'Pick up where you left off'),
-      h('div', { class: 'resume-list' }, o.resume.map(r => {
-        const card = SportCard(Object.assign({ resume: true }, r));
-        if (!r.onRemove) return card;
-        // the ⋯ button sits beside the card (a button can't live inside a button) and opens a small "remove" sheet
-        const more = h('button', { type: 'button', class: 'resume-more', 'aria-label': 'Options for ' + r.title, onclick: () => openRemoveSheet(r) }, icon('more', 22));
-        return h('div', { class: 'resume-row' }, card, more);
-      }))) : null,
+      h('p', { class: 'page-sub' }, 'Tap a sport and start scoring.')),
+    any ? h('section', { class: 'resume-section', 'aria-label': 'Continue playing' },
+      cont ? h('div', { class: 'resume-list' }, cont) : null,
+      resumeCards.length ? h('div', { class: 'resume-list' }, resumeCards) : null) : null,
     h('div', { class: 'sport-grid' }, sportOrder.map(k =>
-      SportCard({ sport: k, title: sportInfo[k].name, sub: sportInfo[k].tagline, onClick: () => o.onPick(k) }))));
+      h('div', { class: 'sport-cell' },
+        SportCard({ sport: k, title: sportInfo[k].name, sub: sportInfo[k].tagline, onClick: () => o.onPick(k) }),
+        h('button', { type: 'button', class: 'card-help', 'aria-label': 'Rules for ' + sportInfo[k].name, onclick: () => o.onHelp(k) }, icon('help', 18))))),
+    h('div', { class: 'home-links' },
+      h('button', { type: 'button', class: 'link', onclick: o.onTournament }, 'Run a tournament →'),
+      h('button', { type: 'button', class: 'link', onclick: o.onCourts }, 'Court session →')));
 }

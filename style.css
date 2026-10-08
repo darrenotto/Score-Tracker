@@ -169,7 +169,8 @@ select, button, input, .button-like { min-height: 48px; }
 .sport-rule { font-size: 13px; color: var(--muted); line-height: 1.3; }
 /* the odd last card (Squash) spans the row on a 2-column phone grid */
 @media (max-width: 599px) {
-  .sport-grid > .sport-card:last-child:nth-child(odd) { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: flex-start; min-height: 84px; }
+  .sport-grid > .sport-cell:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .sport-grid > .sport-cell:last-child:nth-child(odd) > .sport-card { flex-direction: row; align-items: center; justify-content: flex-start; min-height: 84px; }
 }
 /* unfinished matches: compact horizontal cards */
 .sport-card.resume { flex-direction: row; align-items: center; justify-content: flex-start; min-height: 64px; padding: var(--sp-3) var(--sp-4); }
@@ -571,9 +572,12 @@ button.trd-in { min-height: 44px; }
 .fit-screen .screen.menu { flex: 1 1 0; min-height: 0; gap: var(--sp-3); }
 .fit-screen .sport-grid { flex: 1 1 0; min-height: 0; grid-auto-rows: minmax(0, 1fr); }
 .fit-screen .sport-grid .sport-card { min-height: 0; overflow: hidden; }
-.fit-screen .resume-section { flex: 0 0 auto; max-height: 30%; overflow-y: auto; }
+.fit-screen .resume-section { flex: 0 0 auto; max-height: 36%; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-2); }
 .fit-screen .sport-card.resume { min-height: 52px; flex: 0 0 auto; }
-@media (min-width: 600px) { .fit-screen .sport-grid > .sport-card:last-child:nth-child(3n+1) { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: flex-start; } }
+@media (min-width: 600px) {
+  .fit-screen .sport-grid > .sport-cell:last-child:nth-child(3n+1) { grid-column: 1 / -1; }
+  .fit-screen .sport-grid > .sport-cell:last-child:nth-child(3n+1) > .sport-card { flex-direction: row; align-items: center; justify-content: flex-start; }
+}
 @media (max-height: 740px) {
   .fit-screen .screen.menu { gap: var(--sp-2); }
   .fit-screen .page-title { font-size: 24px; }
@@ -585,26 +589,28 @@ button.trd-in { min-height: 44px; }
 }
 @media (max-height: 600px) {
   .fit-screen .page-sub { display: none; }
-  .fit-screen .sport-grid .sport-card { flex-direction: row; align-items: center; justify-content: flex-start; padding: var(--sp-2) var(--sp-3); }
-  .fit-screen .sport-grid .sport-tile { width: 32px; height: 32px; flex-basis: 32px; }
-  .fit-screen .sport-grid .sport-name { font-size: 14px; }
+  .fit-screen .sport-grid .sport-card { flex-direction: row; align-items: center; justify-content: flex-start; padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-3); gap: 6px; }
+  .fit-screen .sport-grid .sport-tile { width: 26px; height: 26px; flex-basis: 26px; }
+  .fit-screen .sport-grid .sport-name { font-size: 13px; }
+  .fit-screen .has-resume .sport-grid .sport-tile { width: 26px; height: 26px; flex-basis: 26px; }
+  .fit-screen .has-resume .sport-grid .sport-card { padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-3); gap: 6px; }
 }
 @media (orientation: landscape) and (max-height: 520px) {           /* landscape phone: 4 across, two rows */
   .fit-screen .page-head { flex-direction: row; align-items: baseline; gap: var(--sp-3); }
   .fit-screen .page-title { font-size: 20px; }
   .fit-screen .sport-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .fit-screen .sport-grid > .sport-card:last-child:nth-child(odd) { grid-column: auto; }
-  .fit-screen .sport-grid > .sport-card:last-child:nth-child(4n+3) { grid-column: span 2; }
-  .fit-screen .sport-grid > .sport-card:last-child:nth-child(3n+1) { grid-column: auto; }
+  .fit-screen .sport-grid > .sport-cell:last-child:nth-child(odd) { grid-column: auto; }
+  .fit-screen .sport-grid > .sport-cell:last-child:nth-child(4n+3) { grid-column: span 2; }
+  .fit-screen .sport-grid > .sport-cell:last-child:nth-child(3n+1) { grid-column: auto; }
 }
-.fit-screen .sport-grid > .sport-card:last-child:nth-child(n) { min-height: 0; }   /* beats the older odd-last-card min-height */
+.fit-screen .sport-grid > .sport-cell:last-child:nth-child(n) > .sport-card { min-height: 0; }   /* beats the older odd-last-card min-height */
 /* with "pick up where you left off" cards above, the sports get less height: compact cards (rule line hidden) */
 .fit-screen .has-resume .sport-grid .sport-rule { display: none; }
 .fit-screen .has-resume .sport-grid .sport-tile { width: 36px; height: 36px; flex-basis: 36px; }
 .fit-screen .has-resume .sport-grid .sport-card { padding: var(--sp-2) var(--sp-3); }
 @media (max-height: 800px) {
   .fit-screen .has-resume .sport-grid .sport-card { flex-direction: row; align-items: center; justify-content: flex-start; }
-  .fit-screen .has-resume .sport-grid .sport-name { font-size: 14px; }
+  .fit-screen .has-resume .sport-grid .sport-name { font-size: 13px; }
   .fit-screen .has-resume .page-sub { display: none; }
 }
 
@@ -619,3 +625,55 @@ button.trd-in { min-height: 44px; }
 @media (hover: hover) { .resume-more:hover { color: var(--text); border-color: var(--muted); } }
 .btn.danger { background: var(--danger-ink); color: #fff; }
 :root[data-theme="dark"] .btn.danger { color: #450a0a; }
+
+/* --- sport cell = card + its "?" rules button; home links --- */
+.sport-cell { position: relative; display: flex; min-width: 0; min-height: 0; }
+.sport-cell > .sport-card { flex: 1 1 auto; width: auto; min-width: 0; }
+.card-help {
+  position: absolute; top: 0; right: 0; width: 26px; height: 26px; min-height: 0; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: 0; border-radius: var(--r-pill); color: var(--muted);
+}
+.card-help svg { width: 15px; height: 15px; }
+.card-help::after { content: ''; position: absolute; inset: -9px -9px -9px -9px; }       /* ~44px touch target around the small icon */
+.card-help:active { background: var(--btn); }
+@media (hover: hover) { .card-help:hover { color: var(--text); background: var(--btn); } }
+.home-links { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-1) var(--sp-4); flex: 0 0 auto; }
+.home-links .link { min-height: 40px; padding: 0 var(--sp-2); font-weight: 700; color: var(--primary-ink); }
+.sport-pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
+.sport-pick-btn { display: flex; align-items: center; gap: var(--sp-2); min-height: 52px; padding: var(--sp-2) var(--sp-3); text-align: left; font-weight: 700;
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-md); }
+.sport-pick-btn .sport-tile { width: 36px; height: 36px; flex-basis: 36px; }
+
+/* --- scoreboard tools: rules (?) and options, and tap-to-edit team names --- */
+.qm-note { flex: 1 1 auto; }
+.qm-tool { flex: 0 0 auto; width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-pill); background: var(--btn); color: var(--text); position: relative; }
+.qm-tool::after { content: ''; position: absolute; inset: -4px; }
+.qm-status { min-height: 36px; }
+.qm-zone .qm-name.editable { display: inline-flex; align-items: center; justify-content: center; gap: 6px; max-width: 100%; min-width: 0; min-height: 36px;
+  padding: 0 8px; background: transparent; border: 0; border-radius: var(--r-md); color: inherit; font-family: inherit; cursor: pointer; }
+.qm-zone .qm-name.editable > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qm-zone.long-name .qm-name.editable > span { white-space: normal; word-break: break-word; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.qm-name.editable svg { flex: 0 0 auto; opacity: .55; }
+/* landscape phone: no room for the title block, and the "continue" area stays one row tall */
+@media (orientation: landscape) and (max-height: 520px) {
+  .fit-screen .menu .page-head { display: none; }
+  .fit-screen .resume-section { flex-direction: row; max-height: none; overflow: hidden; }
+  .fit-screen .resume-section > * { flex: 1 1 0; min-width: 0; max-height: 52px; overflow-y: auto; }
+  .fit-screen .sport-grid .sport-card, .fit-screen .has-resume .sport-grid .sport-card { padding: var(--sp-1) var(--sp-2); }
+  .fit-screen .sport-grid .sport-tile, .fit-screen .has-resume .sport-grid .sport-tile { width: 26px; height: 26px; flex-basis: 26px; }
+  .fit-screen .sport-grid .sport-name, .fit-screen .has-resume .sport-grid .sport-name { font-size: 13px; }
+  .fit-screen .sport-card.resume { min-height: 44px; }
+}
+/* short screens + "continue" cards: tile/padding must beat the .has-resume defaults above, so this block comes last */
+@media (max-height: 600px) {
+  .fit-screen .has-resume .sport-grid .sport-tile { width: 26px; height: 26px; flex-basis: 26px; }
+  .fit-screen .has-resume .sport-grid .sport-card { padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-3); gap: 6px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .fit-screen .has-resume .sport-grid .sport-card { padding: var(--sp-1) var(--sp-2) var(--sp-1) var(--sp-2); }
+}
+
+/* very short viewports (small phones with the browser bars showing): the title block goes first, the sports always stay */
+@media (max-height: 560px) { .fit-screen .menu .page-head { display: none; } }
+@media (max-height: 600px) { .fit-screen .sport-grid .sport-card, .fit-screen .has-resume .sport-grid .sport-card { padding-left: 10px; gap: 5px; } }

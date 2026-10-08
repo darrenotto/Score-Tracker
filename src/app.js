@@ -1,12 +1,15 @@
 import { h, clear, toast, openModal, openSheet, confirmModal } from './dom.js';
 import { sports, getRules, defaultTarget } from './logic/sports.js';
-import { sportInfo } from './logic/sportRules.js';
+import { sportInfo, sportOrder } from './logic/sportRules.js';
 import { newGame, addPoint, undoPoint, scoreLine } from './logic/scoreLogic.js';
 import * as T from './logic/tournamentLogic.js';
 import * as store from './logic/storageLogic.js';
 import { guestUser } from './logic/authLogic.js';
 import { beep, buzz, share } from './logic/feedback.js';
 import { Header } from './components/Header.js';
+import { SecondaryButton } from './components/Buttons.js';
+import { TargetPicker } from './components/TargetPicker.js';
+import { sportIcon } from './components/Icons.js';
 import { SignInScreen } from './components/SignInScreen.js';
 import { SportSelectionMenu } from './components/SportSelectionMenu.js';
 import { SportRulesPopup } from './components/SportRulesPopup.js';
@@ -38,7 +41,7 @@ import { hasPlayer } from './logic/playerQueueLogic.js';
 const app = document.getElementById('app');
 
 // ---------- state ----------
-let prefs = Object.assign({ dark: null, sound: true, user: null, screen: null }, store.loadPrefs());
+let prefs = Object.assign({ dark: null, sound: true, user: null, screen: null, lastSport: null, targets: {} }, store.loadPrefs());
 let quick = migrateQuick(store.loadQuick());          // null | the quick match in progress / just finished
 let tournament = store.loadTournamentFromStorage();
 let session = store.loadSession();
@@ -87,9 +90,8 @@ function migrateQuick(q) {
 // Screens laid out to fit the viewport (no page scroll; any long list scrolls inside its own area).
 const FIT_SCREENS = ['sports', 'quick', 'quickSummary', 'tournSetup', 'tourn', 'tournPlay', 'tournSummary', 'courtSetup', 'courts', 'courtPlay', 'courtReady', 'courtSummary'];
 
-// Where to land on load: sign-in first, otherwise back to wherever there is something to resume.
+// Where to land on load: the sport menu (no sign-in step; guest is the default), or straight back to something in progress.
 function initialScreen() {
-  if (!prefs.user) return 'signin';
   const s = prefs.screen;
   if (s === 'quick' && quick && quick.status === 'playing' && !quick.game.log.length) return s;   // (a match with points asks "Resume?" instead, see boot)
   if (s === 'quickSummary' && quick && quick.status === 'finished') return s;
@@ -150,7 +152,6 @@ window.addEventListener('popstate', e => {
   }
   let s = e.state && e.state.screen;
   if (!s || !canShow(s)) s = 'sports';
-  if (!prefs.user && s !== 'signin') s = 'signin';
   if (s === nav) return;
   nav = s;
   if (s !== 'signin') { prefs.screen = s; savePrefs(); }
@@ -183,8 +184,8 @@ function openProfile() {
 }
 
 function signOut() {
-  prefs.user = null; savePrefs();
-  go('signin');
+  prefs.user = null; savePrefs();                 // back to guest
+  go('sports');
 }
 
 function render() {
@@ -229,7 +230,12 @@ function signInScreen() {
 function sportsScreen() {
   return [
     header(null, null, true),
-    SportSelectionMenu({ resume: resumeItems(), onPick: openRules }),
+    SportSelectionMenu({
+      resume: resumeItems(), lastSport: prefs.lastSport && sports[prefs.lastSport] ? prefs.lastSport : null,
+      onPick: startQuickMatch, onHelp: openRules,
+      onTournament: () => pickSport('Run a tournament', sport => { beginMode(sport, 'tournMode', () => {}); }),
+      onCourts: () => pickSport('Court session', sport => { beginMode(sport, 'courtSetup', () => { sessionDraft = newSessionDraft(); courtStep = 0; }); }),
+    }),
   ];
 }
 
@@ -258,17 +264,25 @@ function resumeItems() {
   return items;
 }
 
-function openRules(sport) {
-  const begin = (screen, reset) => () => { ctx = { sport, target: defaultTarget(sport), noAd: false, serve: newServeDraft() }; reset(); go(screen); };
-  SportRulesPopup({
-    sport,
-    onQuick: begin('quickSetup', () => { quickDraft = newQuickDraft(); }),
-    onTournament: begin('tournMode', () => {}),
-    onCourts: begin('courtSetup', () => { sessionDraft = newSessionDraft(); courtStep = 0; }),
-  });
-}
+// Rules open only when asked for (the ? on a sport card and on the scoring screen) — never automatically.
+function openRules(sport) { SportRulesPopup({ sport }); }
 
-const backToRules = () => { go('sports'); openRules(ctx.sport); };
+// Tournament / court session still need a sport: ask once, in a small sheet (the last sport is listed first).
+function pickSport(title, onPick) {
+  const order = (prefs.lastSport ? [prefs.lastSport] : []).concat(sportOrder.filter(k => k !== prefs.lastSport));
+  const sheet = openSheet(title,
+    h('p', { class: 'muted' }, 'Which sport?'),
+    h('div', { class: 'sport-pick' }, order.map(k =>
+      h('button', { type: 'button', class: 'sport-pick-btn', onclick: () => { sheet.close(); onPick(k); } },
+        h('span', { class: 'sport-tile' }, sportIcon(k, 22)), h('span', {}, sportInfo[k].name)))));
+}
+function beginMode(sport, screen, reset) {
+  ctx = { sport, target: targetFor(sport), noAd: false, serve: newServeDraft() };
+  prefs.lastSport = sport; savePrefs();
+  reset(); go(screen);
+}
+const targetFor = sport => (prefs.targets && prefs.targets[sport]) || defaultTarget(sport);
+const backHome = () => go('sports');
 const setupTitle = mode => sportInfo[ctx.sport].name.toUpperCase() + ' | ' + mode;
 
 // Starting something new replaces an unfinished one (or one with photos) — confirm first.
@@ -280,10 +294,10 @@ function confirmReplace(exists, what, run) {
 // ---------- Quick Match ----------
 function quickSetupScreen() {
   return [
-    header(setupTitle('Quick Match'), backToRules),
+    header(setupTitle('Quick Match'), backFromSetup),
     QuickMatchSetup({
       draft: quickDraft, sport: ctx.sport, target: ctx.target, noAd: ctx.noAd, serve: ctx.serve,
-      onTarget: n => { ctx.target = n; }, onNoAd: v => { ctx.noAd = v; }, onRerender: render, onBack: backToRules, onStart: startQuick,
+      onTarget: n => { ctx.target = n; }, onNoAd: v => { ctx.noAd = v; }, onRerender: render, onBack: backFromSetup, onStart: startQuick,
     }),
   ];
 }
@@ -298,12 +312,64 @@ function startQuick() {
   const serve = serveConfig(), doubles = !!serve && quickDraft.format === 'doubles';
   const pa = quickDraft.playersA.slice(0, 2).map(s => s.trim()), pb = quickDraft.playersB.slice(0, 2).map(s => s.trim());
   if (doubles && (pa.some(s => !s) || pb.some(s => !s))) { toast('Enter all four player names'); return; }
-  confirmReplace(quick && (quick.status === 'playing' || quick.photos.length), 'quick match', () => {
+  confirmReplace(quick && (quick.game.log.length || quick.photos.length), 'quick match', () => {
     quick = { sport: ctx.sport, target: ctx.target, noAd: ctx.noAd, serve, format: doubles ? 'doubles' : 'singles',
       playersA: doubles ? pa : [], playersB: doubles ? pb : [], nameA: a, nameB: b, game: newGame(), status: 'playing', startTime: Date.now(), endTime: null, photos: [] };
+    prefs.lastSport = ctx.sport; prefs.targets[ctx.sport] = ctx.target; savePrefs();
     saveQuickSafe();
     go('quick');
   });
+}
+
+// One tap from the sport menu to a match that is ready to score: default names, default rules. Anything else
+// (target, doubles, serve tracking) is reachable from the options button on the scoring screen.
+function startQuickMatch(sport) {
+  confirmReplace(quick && (quick.game.log.length || quick.photos.length), 'quick match', () => {
+    ctx = { sport, target: targetFor(sport), noAd: false, serve: newServeDraft() };
+    quickDraft = newQuickDraft();
+    quick = { sport, target: ctx.target, noAd: false, serve: null, format: 'singles', playersA: [], playersB: [],
+      nameA: 'Left', nameB: 'Right', game: newGame(), status: 'playing', startTime: Date.now(), endTime: null, photos: [] };
+    prefs.lastSport = sport; savePrefs();
+    saveQuickSafe();
+    go('quick');
+  });
+}
+
+// The advanced setup screen came from the match options: back goes to that match (or home when there isn't one).
+const backFromSetup = () => go(quick && quick.status === 'playing' ? 'quick' : 'sports');
+
+// Match options (target / deuce rule, doubles + serve tracking). Rules are locked once the first point is scored.
+function openQuickOptions() {
+  const q = quick, started = q.game.log.length > 0;
+  const picker = started ? null : TargetPicker(q.sport, q.target, n => {
+    q.target = n; prefs.targets[q.sport] = n; savePrefs(); saveQuickSafe(); render();
+  }, q.noAd, v => { q.noAd = v; saveQuickSafe(); render(); });
+  const sheet = openSheet(sportName(q.sport) + ' options',
+    started ? h('p', { class: 'muted' }, 'The rules are locked once a match has started. Finish or reset the match to change them.') : picker,
+    h('div', { class: 'sheet-actions' },
+      SecondaryButton('Doubles, player names & serve tracking', () => {
+        sheet.close();
+        ctx = { sport: q.sport, target: q.target, noAd: q.noAd, serve: newServeDraft() };
+        quickDraft = Object.assign(newQuickDraft(), { nameA: q.nameA, nameB: q.nameB });
+        go('quickSetup');
+      }, { icon: 'arrow' }),
+      SecondaryButton('Close', () => sheet.close())));
+}
+
+// Tap a team name on the scoring screen to rename it without leaving the match.
+function renameTeam(side) {
+  const key = side === 'A' ? 'nameA' : 'nameB', input = h('input', { type: 'text', value: quick[key], maxLength: 30, 'aria-label': 'Team name' });
+  const save = () => {
+    const v = input.value.trim();
+    if (!v) { toast('Enter a name'); return; }
+    quick[key] = v; saveQuickSafe(); m.close(); render();
+  };
+  const m = openModal(h('h2', {}, 'Team name'), input,
+    h('div', { class: 'row' },
+      h('button', { type: 'button', onclick: () => m.close() }, 'Cancel'),
+      h('button', { type: 'button', class: 'primary', onclick: save }, 'Save')));
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); save(); } });
+  setTimeout(() => { input.focus(); input.select(); }, 50);
 }
 
 const quickRules = () => getRules(quick.sport, quick.target, quick.noAd);
@@ -312,12 +378,14 @@ function quickScreen() {
   return [
     header(sportInfo[quick.sport].name.toUpperCase() + ' | Quick Match',
       () => quick.game.log.length ? leaveTo('sports', 'Your score is saved — resume it from the sport menu.') : go('sports')),
-    QuickMatchScoreScreen(quick, { rules: quickRules(), onTap: quickTap, onPhoto: takeQuickPhoto, onUndo: quickUndo, onReset: quickReset }),
+    QuickMatchScoreScreen(quick, { rules: quickRules(), onTap: quickTap, onPhoto: takeQuickPhoto, onUndo: quickUndo, onReset: quickReset,
+      onHelp: () => openRules(quick.sport), onSettings: openQuickOptions, onRename: renameTeam }),
   ];
 }
 
 function quickTap(side) {
   if (quick.game.winner) return;
+  if (!quick.game.log.length) quick.startTime = Date.now();                 // the clock starts at the first point
   quick.game = addPoint(quick.game, side, quickRules());
   beep(prefs.sound, side === 'A' ? 660 : 520); buzz(25);
   if (quick.game.winner) {
@@ -374,7 +442,7 @@ function quickSummaryScreen() {
 // Tournament: choose the kind first. Each card explains itself; only available modes can continue.
 function tournModeScreen() {
   return [
-    header(setupTitle('Tournament'), backToRules),
+    header(setupTitle('Tournament'), backHome),
     TournamentChooser({
       onPick: mode => openModeDetail(mode, m => {
         if (m.id === 'series') { tournDraft = newDraft(); tournStep = 0; go('tournSetup'); }
@@ -560,11 +628,11 @@ function dispatch(action) {
 
 function courtSetupScreen() {
   return [
-    header(setupTitle('Courts'), courtStep ? () => { courtStep--; render(); } : backToRules),
+    header(setupTitle('Courts'), courtStep ? () => { courtStep--; render(); } : backHome),
     SessionSetup({
       draft: sessionDraft, sport: ctx.sport, target: ctx.target, noAd: ctx.noAd, serve: ctx.serve, step: courtStep,
       onStep: n => { courtStep = n; render(); },
-      onTarget: n => { ctx.target = n; }, onNoAd: v => { ctx.noAd = v; }, onRerender: render, onBack: backToRules, onStart: startSession,
+      onTarget: n => { ctx.target = n; }, onNoAd: v => { ctx.noAd = v; }, onRerender: render, onBack: backHome, onStart: startSession,
     }),
   ];
 }

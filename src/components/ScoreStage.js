@@ -8,6 +8,7 @@ import { statusText, displayScore } from '../logic/scoreLogic.js';
 //
 // o: { rules, game, nameA, nameB, subA?, subB? (secondary line, e.g. players), serve? (from serveLogic),
 //      unit (text in the status chip), onTap(side),
+//      onHelp? (shows a ? button that opens the rules), onSettings? (shows a sliders button), onRename?(side) (tap a name to edit it),
 //      controls: [{ label, icon, onClick, disabled?, cls?, aria? }] }
 let lastTap = null;   // which zone was just tapped, so only its score plays the little "pop"
 
@@ -33,7 +34,10 @@ export function ScoreStage(o) {
       onclick: tap,
       onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tap(); } },
     },
-      h('div', { class: 'qm-name', title: name }, name),
+      o.onRename
+        ? h('button', { type: 'button', class: 'qm-name editable', title: 'Edit name', 'aria-label': 'Edit name: ' + name, onclick: e => { e.stopPropagation(); o.onRename(side); }, onkeydown: e => e.stopPropagation() },
+            h('span', {}, name), icon('edit', 14))
+        : h('div', { class: 'qm-name', title: name }, name),
       sub ? h('div', { class: 'qm-sub' }, sub) : null,
       h('div', { class: 'qm-score' }, big),
       foot ? h('div', { class: 'qm-foot' },
@@ -45,7 +49,9 @@ export function ScoreStage(o) {
   const root = h('div', { class: 'qm' },
     h('div', { class: 'qm-status' },
       h('span', { class: 'qm-unit' }, o.unit),
-      h('span', { class: 'qm-note' }, statusText(g, o.rules, short(o.nameA), short(o.nameB)))),
+      h('span', { class: 'qm-note' }, statusText(g, o.rules, short(o.nameA), short(o.nameB))),
+      o.onSettings ? h('button', { type: 'button', class: 'qm-tool', 'aria-label': 'Match options', onclick: o.onSettings }, icon('sliders', 20)) : null,
+      o.onHelp ? h('button', { type: 'button', class: 'qm-tool', 'aria-label': 'Rules', onclick: o.onHelp }, icon('help', 20)) : null),
     h('div', { class: 'qm-stage' },
       zone('A', o.nameA, o.subA, d.bigA, d.detailA),
       zone('B', o.nameB, o.subB, d.bigB, d.detailB)),

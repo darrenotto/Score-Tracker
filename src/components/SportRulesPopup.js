@@ -1,8 +1,9 @@
 import { h, openModalClass } from '../dom.js';
 import { sportInfo } from '../logic/sportRules.js';
 
-// Scrollable rules sheet with the mode choice in the footer.
-// o: { sport, onQuick(), onTournament(), onCourts() } — the sheet closes itself first.
+// Scrollable rules sheet. Opened only on request (the "?" on the scoring screen and on each sport card), never automatically.
+// o: { sport } — plus, optionally, { onQuick(), onTournament(), onCourts() } to show the mode choice in the footer
+// (the sheet closes itself first). Without them the footer is just a "Got it" button.
 export function SportRulesPopup(o) {
   const info = sportInfo[o.sport];
   let m;
@@ -20,11 +21,13 @@ export function SportRulesPopup(o) {
       h('h2', {}, info.name.toUpperCase() + ' RULES'),
       h('button', { class: 'icon', 'aria-label': 'Close rules', onclick: () => m.close() }, '✕')),
     body,
-    h('div', { class: 'rules-foot' },
-      h('div', { class: 'row' },
-        h('button', { class: 'primary', onclick: pick(o.onQuick) }, 'Quick Match'),
-        h('button', { class: 'primary', onclick: pick(o.onTournament) }, 'Tournament')),
-      h('button', { class: 'link', onclick: pick(o.onCourts) }, 'Court session (drop-in play with many players)')));
+    o.onQuick
+      ? h('div', { class: 'rules-foot' },
+          h('div', { class: 'row' },
+            h('button', { class: 'primary', onclick: pick(o.onQuick) }, 'Quick Match'),
+            h('button', { class: 'primary', onclick: pick(o.onTournament) }, 'Tournament')),
+          h('button', { class: 'link', onclick: pick(o.onCourts) }, 'Court session (drop-in play with many players)'))
+      : h('div', { class: 'rules-foot' }, h('button', { class: 'primary', onclick: () => m.close() }, 'Got it')));
   m.back.addEventListener('click', e => { if (e.target === m.back) m.close(); });
   return m;
 }
