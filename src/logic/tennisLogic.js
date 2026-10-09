@@ -3,11 +3,11 @@
 //
 //   points in a game:  0, 15, 30, 40; at 40-40 deuce, then advantage (or golden point if noAd)
 //   game:              first to 4 points, win by 2 (noAd: first to 4, deciding point at 3-3)
-//   set:               first to 6 games, win by 2; at 6-6 a tiebreak (first to 7, win by 2) decides it 7-6
+//   set:               first to N games (opts.winAt, default 6), win by 2; at N-N a tiebreak (first to 7, win by 2) decides it N+1-N
 const LABELS = ['0', '15', '30', '40'];
 
 export function tennisState(log, opts) {
-  const noAd = !!(opts && opts.noAd);
+  const noAd = !!(opts && opts.noAd), N = (opts && opts.winAt) || 6;
   let gA = 0, gB = 0, pA = 0, pB = 0, tb = false, winner = null, tbA = null, tbB = null;
 
   for (let i = 0; i < log.length && !winner; i++) {
@@ -22,8 +22,8 @@ export function tennisState(log, opts) {
     pA = pB = 0;
 
     if (tb) { winner = w; tb = false; }                              // tiebreak winner takes the set 7-6
-    else if (Math.max(gA, gB) >= 6 && Math.abs(gA - gB) >= 2) winner = gA > gB ? 'A' : 'B';
-    else if (gA === 6 && gB === 6) tb = true;
+    else if (Math.max(gA, gB) >= N && Math.abs(gA - gB) >= 2) winner = gA > gB ? 'A' : 'B';
+    else if (gA === N && gB === N) tb = true;
   }
 
   let labelA, labelB;
@@ -52,5 +52,6 @@ export function tennisStatus(game, rules, nameA, nameB) {
     if (next.winner === side) parts.push('Set point: ' + name);
     else if (next['score' + side] > cur['score' + side] && !advantage) parts.push('Game point: ' + name);
   });
-  return parts.join(' · ') || 'Set to 6 games, win by 2 · tiebreak at 6–6';
+  const N = rules.winAt || 6;
+  return parts.join(' · ') || 'Set to ' + N + ' games, win by 2 · tiebreak at ' + N + '–' + N;
 }

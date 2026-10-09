@@ -72,7 +72,7 @@ Live screens (home, scoring, results) fit the viewport with no page scroll: `bod
 tablet sizes, portrait and landscape.
 
 ## Known limits
-- Tennis/Padel score point by point (15/30/40, deuce/advantage or golden point, games, 6-6 tiebreak). A Quick Match is one set;
+- Tennis/Padel score point by point (15/30/40, games, tiebreak at N-N). House rules are set at setup (Quick Match options, Match series, Court session) and remembered per sport: games per set 4-8 (default 6) and standard deuce vs golden point. A Quick Match is one set;
   use Tournament "Best of 3 Sets" for a full match. Side changes and a 10-point deciding tiebreak aren't tracked.
 - Optional "Track who's serving" (tennis, padel, badminton): reachable from the match options > "Doubles, player names & serve
   tracking". Assumes the same starting boxes each badminton game.

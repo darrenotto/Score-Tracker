@@ -48,7 +48,7 @@ import { hasPlayer } from './logic/playerQueueLogic.js';
 const app = document.getElementById('app');
 
 // ---------- state ----------
-let prefs = Object.assign({ dark: null, sound: true, user: null, screen: null, lastSport: null, targets: {} }, store.loadPrefs());
+let prefs = Object.assign({ dark: null, sound: true, user: null, screen: null, lastSport: null, targets: {}, noAd: {} }, store.loadPrefs());
 let quick = migrateQuick(store.loadQuick());          // null | the quick match in progress / just finished
 let tournament = store.loadTournamentFromStorage();
 let session = store.loadSession();
@@ -305,11 +305,14 @@ function pickSport(title, onPick) {
         h('span', { class: 'sport-tile' }, sportIcon(k, 22)), h('span', {}, sportInfo[k].name)))));
 }
 function beginMode(sport, screen, reset) {
-  ctx = { sport, target: targetFor(sport), noAd: false, serve: newServeDraft() };
+  ctx = { sport, target: targetFor(sport), noAd: noAdFor(sport), serve: newServeDraft() };
   prefs.lastSport = sport; savePrefs();
   reset(); go(screen);
 }
 const targetFor = sport => (prefs.targets && prefs.targets[sport]) || defaultTarget(sport);
+const noAdFor = sport => !!(prefs.noAd && prefs.noAd[sport]);                 // golden point remembered per sport
+// Remember the house rules (games per set / target, golden point) a player picked, so the next match starts with them.
+function rememberRules(sport, target, noAd) { prefs.targets[sport] = target; if (!prefs.noAd) prefs.noAd = {}; prefs.noAd[sport] = !!noAd; savePrefs(); }
 const backHome = () => go('sports');
 const setupTitle = mode => sportInfo[ctx.sport].name.toUpperCase() + ' | ' + mode;
 
@@ -343,7 +346,7 @@ function startQuick() {
   confirmReplace(quick && (quick.game.log.length || quick.photos.length), 'quick match', () => {
     quick = { sport: ctx.sport, target: ctx.target, noAd: ctx.noAd, serve, format: doubles ? 'doubles' : 'singles',
       playersA: doubles ? pa : [], playersB: doubles ? pb : [], nameA: a, nameB: b, game: newGame(), status: 'playing', startTime: Date.now(), endTime: null, photos: [] };
-    prefs.lastSport = ctx.sport; prefs.targets[ctx.sport] = ctx.target; savePrefs();
+    prefs.lastSport = ctx.sport; rememberRules(ctx.sport, ctx.target, ctx.noAd);
     saveQuickSafe();
     go('quick');
   });
@@ -353,9 +356,9 @@ function startQuick() {
 // (target, doubles, serve tracking) is reachable from the options button on the scoring screen.
 function startQuickMatch(sport, fresh) {
   confirmReplace(!fresh && quick && (quick.game.log.length || quick.photos.length), 'quick match', () => {
-    ctx = { sport, target: targetFor(sport), noAd: false, serve: newServeDraft() };
+    ctx = { sport, target: targetFor(sport), noAd: noAdFor(sport), serve: newServeDraft() };
     quickDraft = newQuickDraft();
-    quick = { sport, target: ctx.target, noAd: false, serve: null, format: 'singles', playersA: [], playersB: [],
+    quick = { sport, target: ctx.target, noAd: ctx.noAd, serve: null, format: 'singles', playersA: [], playersB: [],
       nameA: 'Left', nameB: 'Right', game: newGame(), status: 'playing', startTime: Date.now(), endTime: null, photos: [], history: [] };
     swapNext = false;
     prefs.lastSport = sport; savePrefs();
@@ -371,8 +374,8 @@ const backFromSetup = () => go(quick && quick.status === 'playing' ? 'quick' : '
 function openQuickOptions() {
   const q = quick, started = q.game.log.length > 0;
   const picker = started ? null : TargetPicker(q.sport, q.target, n => {
-    q.target = n; prefs.targets[q.sport] = n; savePrefs(); saveQuickSafe(); render();
-  }, q.noAd, v => { q.noAd = v; saveQuickSafe(); render(); });
+    q.target = n; rememberRules(q.sport, q.target, q.noAd); saveQuickSafe(); render();
+  }, q.noAd, v => { q.noAd = v; rememberRules(q.sport, q.target, q.noAd); saveQuickSafe(); render(); });
   const sheet = openSheet(sportName(q.sport) + ' options',
     started ? h('p', { class: 'muted' }, 'The rules are locked once a match has started. Finish or reset the match to change them.') : picker,
     h('div', { class: 'sheet-actions' },
@@ -522,6 +525,7 @@ function startTournament() {
   const d = tournDraft, n = d.format === 'doubles' ? 2 : 1;
   if (!draftComplete(d)) { toast('Fill in every name'); return; }
   confirmReplace(tournament && (!tournament.finished || T.photoCount(tournament)), 'tournament', () => {
+    rememberRules(ctx.sport, ctx.target, ctx.noAd);
     tournament = T.createTournament({
       name: d.name.trim(), sport: ctx.sport, target: ctx.target, noAd: ctx.noAd, serve: serveConfig(), format: d.format, bestOf: d.bestOf,
       teamA: d.teamA.trim(), teamB: d.teamB.trim(),
@@ -700,6 +704,7 @@ function startSession() {
   const courtNames = [];
   for (let i = 0; i < d.courts; i++) courtNames.push('');
   confirmReplace(session && (session.status !== 'completed' || sessionPhotoCount(session)), 'court session', () => {
+    rememberRules(ctx.sport, ctx.target, ctx.noAd);
     session = createSession({
       name: d.name.trim() || 'Court session', sport: ctx.sport, target: ctx.target, noAd: ctx.noAd, serve: serveConfig(), format: d.format,
       courtNames, playerNames: d.players.split('\n'),

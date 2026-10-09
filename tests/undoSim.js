@@ -18,7 +18,7 @@ export function run() {
   Object.keys(sports).forEach(k => {
     const s = sports[k];
     if (s.targetOptions) s.targetOptions.forEach(t => variants.push([k, t, false]));
-    else if (s.system === 'tennis') { variants.push([k, s.winAt, false]); variants.push([k, s.winAt, true]); }
+    else if (s.system === 'tennis') s.gamesOptions.forEach(n => { variants.push([k, n, false]); variants.push([k, n, true]); });
     else variants.push([k, s.winAt, false]);
   });
   variants.push(['basketball', 21, false]);

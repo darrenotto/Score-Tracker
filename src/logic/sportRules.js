@@ -60,7 +60,7 @@ export const sportInfo = {
       { title: 'How to score', points: [
         'Points in a game go 0, 15, 30, 40, then game.',
         'At 40–40 (deuce) you need two points in a row (advantage, then game).',
-        'First to 6 games wins a set, by 2 games.',
+        'Usually first to 6 games wins a set, by 2 games (the app lets you pick 4 to 8).',
         'At 6–6 a tiebreak is played: first to 7 points, by 2, wins the set 7–6.' ] },
       { title: 'Service', points: [
         'Serve from behind the baseline, diagonally into the service box.',
@@ -69,7 +69,7 @@ export const sportInfo = {
       { title: 'In & out', points: [ 'A ball touching the line is in. Beyond the lines is out.' ] },
       { title: 'Winning', points: [ 'Matches are usually best of 3 sets — use Tournament mode.' ] },
     ],
-    app: 'Tap the side that wins each POINT. The app tracks 15/30/40, deuce and advantage, games, and the 6–6 tiebreak. Quick Match is one set; use Tournament and "Best of 3 Sets" for a full match. Optional: "Track who\'s serving" shows the server and which side they serve from.',
+    app: 'Tap the side that wins each POINT. The app tracks 15/30/40, deuce, games and the tiebreak. At setup you can set your house rules: games per set (4 to 8, usually 6) and the deuce rule (standard deuce with advantage, or golden point: one deciding point at 40–40). Quick Match is one set; use Tournament and "Best of 3 Sets" for a full match. Optional: "Track who\'s serving" shows the server and which side they serve from.',
   },
   tableTennis: {
     icon: '🏓', name: 'Table Tennis', tagline: 'First to 11',
@@ -92,7 +92,7 @@ export const sportInfo = {
     sections: [
       { title: 'How to score', points: [
         'Scored like tennis: 15, 30, 40, game; deuce at 40–40 (many clubs play a single "golden point" instead).',
-        'First to 6 games wins a set, by 2; a tiebreak is played at 6–6.' ] },
+        'Usually first to 6 games wins a set, by 2 (the app lets you pick 4 to 8); a tiebreak is played at 6–6.' ] },
       { title: 'Service', points: [
         'Serve underhand: let the ball bounce behind the service line and hit it below the waist.',
         'Serve diagonally into the opposite service box. You get two attempts.' ] },
@@ -101,7 +101,7 @@ export const sportInfo = {
         'After your side hits it, it may not touch your own walls/fence before the opponent\'s court bounce.' ] },
       { title: 'Winning', points: [ 'Usually best of 3 sets, played in doubles — use Tournament or Courts mode.' ] },
     ],
-    app: 'Tap the side that wins each POINT. At setup choose Advantage or Golden point at deuce. The app tracks games and the 6–6 tiebreak. Quick Match is one set; use Tournament and "Best of 3 Sets" for a full match. Optional: "Track who\'s serving" shows the server and side.',
+    app: 'Tap the side that wins each POINT. At setup choose your house rules: games per set (4 to 8, usually 6) and Standard deuce or Golden point at deuce. The app tracks games and the tiebreak. Quick Match is one set; use Tournament and "Best of 3 Sets" for a full match. Optional: "Track who\'s serving" shows the server and side.',
   },
   basketball: {
     icon: '🏀', name: 'Basketball', tagline: 'Custom score',
