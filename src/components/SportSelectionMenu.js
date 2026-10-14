@@ -54,6 +54,6 @@ export function SportSelectionMenu(o) {
       h('button', { type: 'button', class: 'link', onclick: o.onTournament }, 'Run a tournament →'),
       h('button', { type: 'button', class: 'link', onclick: o.onCourts }, 'Court session →')),
     h('section', { class: 'fb-home', 'aria-label': 'Feedback' },
-      h('h2', { class: 'eyebrow' }, 'Help make ScoreTracker better'),
+      h('h2', { class: 'eyebrow' }, 'Help make DuelPoin better'),
       SportCard({ icon: 'chat', tileClass: 'fb-tile', title: 'Tell me what you think', sub: 'Ideas, bugs, or a sport you want · 10 sec', resume: true, chevron: true, onClick: o.onFeedback })));
 }

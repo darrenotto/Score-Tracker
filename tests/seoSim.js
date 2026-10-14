@@ -22,7 +22,7 @@ export async function run() {
     const title = grab(doc, 'title');
     titles.add(title);
     check(title === seoTitle(key), slug + ': <title> "' + title + '" equals the app title "' + seoTitle(key) + '"');
-    check(/Free, No Sign-up \| ScoreTracker$/.test(title || ''), slug + ': title format');
+    check(/Free, No Sign-up \| DuelPoin$/.test(title || ''), slug + ': title format');
     const desc = grab(doc, 'meta[name=description]', 'content');
     check(!!desc && desc.length > 60 && desc.length < 200, slug + ': description length ' + (desc || '').length);
     check(grab(doc, 'meta[property="og:title"]', 'content') === title, slug + ': og:title');
@@ -34,7 +34,7 @@ export async function run() {
 
   // the home page and an unknown path
   const home = new DOMParser().parseFromString(await (await fetch('/', { cache: 'no-store' })).text(), 'text/html');
-  check(/Free Score Keeper/.test(grab(home, 'title') || ''), 'home title');
+  check(/^DuelPoin .* Free Score Keeper/.test(grab(home, 'title') || ''), 'home title');
   check(/Stop arguing about the score/.test(grab(home, 'meta[name=description]', 'content') || ''), 'home description has the headline');
   const unknown = await fetch('/definitely/not/a/sport', { cache: 'no-store' });
   check(unknown.ok, 'an unknown path still serves the app (the app then shows home)');

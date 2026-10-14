@@ -1,4 +1,4 @@
-/* ================= ScoreTracker design system =================
+/* ================= DuelPoin design system =================
    Tokens first. Older component rules below keep using the short names (--bg, --panel, --text, --muted,
    --btn, --ok ...), which are mapped onto the new palette here, so every screen inherits it. */
 :root {
@@ -40,8 +40,8 @@ body {
   padding: max(var(--sp-2), env(safe-area-inset-top)) max(var(--page-pad), env(safe-area-inset-right)) max(var(--sp-2), env(safe-area-inset-bottom)) max(var(--page-pad), env(safe-area-inset-left));
   touch-action: manipulation; overflow: hidden;
 }
-/* On wide screens ScoreTracker stays a phone-sized utility, centred. */
-#adTop, #app, #adBottom, .foot { width: 100%; max-width: var(--page-max); margin-left: auto; margin-right: auto; }
+/* On wide screens DuelPoin stays a phone-sized utility, centred. */
+#app, .foot { width: 100%; max-width: var(--page-max); margin-left: auto; margin-right: auto; }
 #app { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--sp-2); overflow-y: auto; }
 /* visible keyboard focus everywhere (mouse/touch taps don't show it) */
 :focus-visible { outline: 3px solid var(--primary-dark); outline-offset: 2px; border-radius: var(--r-sm); }
@@ -50,17 +50,14 @@ body {
 .screen { flex: 1 0 auto; display: flex; flex-direction: column; gap: 8px; }   /* grows to fill, never squeezes its content; #app scrolls instead */
 .muted { color: var(--muted); } .center { text-align: center; }
 
-/* ads: low-weight strips above and below, clearly labelled, never inside the score area */
-#adTop, #adBottom { flex: 0 0 auto; }
-.ad-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+/* ads (see AdSlot.js): only drawn when ADS_ENABLED; fixed height so nothing jumps; clear of every button */
+.ad-slot { flex: 0 0 auto; height: 118px; margin-top: var(--sp-4); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px; overflow: hidden; }
 .ad-label { font-size: 10px; line-height: 1; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
-.ad {
-  height: 50px; width: 100%; max-width: 320px; border-radius: var(--r-sm); border: 1px dashed var(--border);
-  display: flex; align-items: center; justify-content: center; overflow: hidden;
-}
-.ad-empty { color: var(--faint); font-size: 11px; }
-.foot { text-align: center; font-size: 11px; color: var(--faint); flex: 0 0 auto; }
-.foot a { color: inherit; }
+@media (max-height: 560px) { .ad-slot { display: none; } }          /* no room: no ad (never squeezes the screen) */
+/* footer links on every screen: Privacy / About / Contact */
+.foot { flex: 0 0 auto; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0 4px; padding: 2px 0; font-size: 12px; color: var(--muted); text-align: center; }
+.foot a { color: inherit; padding: 4px 6px; text-decoration: underline; }
+.foot .sep { opacity: .6; }
 
 /* controls */
 .bar { display: flex; gap: 8px; align-items: center; }
@@ -107,7 +104,7 @@ select, button, input, .button-like { min-height: 48px; }
 .icon { width: 48px; flex: 0 0 48px; }
 .ico { display: inline-flex; line-height: 0; }
 
-/* global header: back + title (or the ScoreTracker wordmark on home) on the left, quiet icon buttons on the right */
+/* global header: back + title (or the DuelPoin wordmark on home) on the left, quiet icon buttons on the right */
 .header { flex: 0 0 auto; gap: var(--sp-1); min-height: 52px; }
 .icon-btn { width: 44px; height: 44px; min-height: 44px; flex: 0 0 44px; padding: 0; border-radius: var(--r-pill);
   background: transparent; color: var(--muted); display: inline-flex; align-items: center; justify-content: center; transition: background var(--ease), transform var(--ease); }
@@ -223,11 +220,6 @@ textarea { font: inherit; width: 100%; padding: 10px; border-radius: 12px; borde
    so they adapt whether the zone is 120px or 300px tall, stacked (portrait) or side by side (landscape). */
 body.fit-screen { --page-max: 1100px; }                              /* the scoreboard may use the full width of a landscape phone */
 .fit-screen #app { overflow: hidden; }
-.fit-screen .foot { display: none; }
-.fit-screen #adBottom { margin-top: var(--sp-3); }          /* extra gap so a stray tap on the bottom controls can't land on an ad */
-.fit-screen #adTop, .fit-screen #adBottom { display: none; }          /* ads only when there is room to spare */
-@media (min-height: 640px) { .fit-screen #adTop { display: block; } }
-@media (min-height: 780px) { .fit-screen #adBottom { display: block; } }
 .fit-screen .header { min-height: 48px; }
 
 .qm { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; gap: var(--sp-2); overscroll-behavior: none; padding-bottom: var(--sp-1); }
@@ -757,7 +749,7 @@ button.trd-in { min-height: 44px; }
 .fb-thanks p { margin: 0; }
 .feedback .rules-foot button.primary:disabled { opacity: .5; }
 
-/* home: "Help make ScoreTracker better" */
+/* home: "Help make DuelPoin better" */
 .fb-home { display: flex; flex-direction: column; gap: var(--sp-1); flex: 0 0 auto; }
 .fb-home .eyebrow { margin: 0; }
 .sport-card .card-chevron { margin-left: auto; flex: 0 0 auto; color: var(--faint); display: inline-flex; }

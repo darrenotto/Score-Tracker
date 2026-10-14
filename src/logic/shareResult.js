@@ -23,7 +23,7 @@ export function shareText(q) {
   const g = q.game, w = quickWinner(q), loser = w === 'A' ? 'B' : 'A';
   const hi = Math.max(g.scoreA, g.scoreB), lo = Math.min(g.scoreA, g.scoreB);
   return '🏆 ' + quickName(q, w) + ' beat ' + quickName(q, loser) + ' ' + hi + '–' + lo + ' in ' + sportInfo[q.sport].name
-    + '. Scored with ScoreTracker: ' + shareLink();
+    + '. Scored with DuelPoin: ' + shareLink();
 }
 
 function download(blob, name) {
@@ -42,13 +42,13 @@ export async function shareResult(q) {
   let blob;
   try { blob = await cardToBlob(await drawResultCard(cardData(q))); }
   catch (e) { toast('Could not create the result image'); return 'failed'; }
-  const file = new File([blob], 'scoretracker-result.png', { type: 'image/png' });
+  const file = new File([blob], 'duelpoin-result.png', { type: 'image/png' });
 
   if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-    try { await navigator.share({ files: [file], text, title: 'ScoreTracker result' }); return 'native'; }
+    try { await navigator.share({ files: [file], text, title: 'DuelPoin result' }); return 'native'; }
     catch (e) { if (e && e.name === 'AbortError') return 'cancelled'; }          // any other failure: fall back below
   }
-  download(blob, 'scoretracker-result.png');
+  download(blob, 'duelpoin-result.png');
   const copied = await copyText(text);
   toast(copied ? 'Image saved and the text + link copied' : 'Image saved');
   return 'download';

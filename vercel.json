@@ -1,4 +1,13 @@
 {
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "score-tracker.vercel.app" }],
+      "destination": "https://duelpoin.com/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/badminton", "destination": "/badminton.html" },
     { "source": "/volleyball", "destination": "/volleyball.html" },

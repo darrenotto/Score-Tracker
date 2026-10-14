@@ -106,5 +106,5 @@ export function shareText(t) {
   const s = seriesScore(t.rounds);
   const w = t.matchWinner;
   return '🏆 ' + (w ? teamName(t, w) + ' wins ' + Math.max(s.A, s.B) + '-' + Math.min(s.A, s.B) : 'Match in progress') +
-    ' (' + sports[t.sport].name + ', best of ' + t.bestOf + ')\n' + resultLines(t).join('\n') + '\n— ScoreTracker';
+    ' (' + sports[t.sport].name + ', best of ' + t.bestOf + ')\n' + resultLines(t).join('\n') + '\n— DuelPoin';
 }

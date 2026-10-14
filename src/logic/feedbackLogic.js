@@ -51,7 +51,7 @@ export function buildPayload(f, ctx) {
     app_version: APP_VERSION,
     user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
     timestamp: new Date(now()).toISOString(),
-    _subject: 'ScoreTracker feedback' + (rating ? ' ★' + rating : '') + (sport ? ' — ' + sport : ''),
+    _subject: 'DuelPoin feedback' + (rating ? ' ★' + rating : '') + (sport ? ' — ' + sport : ''),
   };
 }
 

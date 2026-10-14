@@ -1,25 +1,35 @@
 // Offline-first service worker. Everything needed to start and play a match is pre-cached on install, so after
 // one online visit the app (and every sport deep link such as /padel) loads with no signal.
 // Bump CACHE whenever a file changes: old caches are deleted on activate.
-const CACHE = 'scoretracker-v32';
+const CACHE = 'duelpoin-v1';
 const SHELL = 'index.html';
 const ASSETS = [
   SHELL,
   'style.css',
+  'pages.css',
   'manifest.json',
-  'privacy.html',
   'apple-touch-icon.png',
   'icon-192.png',
   'icon-512.png',
+  'about.html',
   'badminton.html',
   'basketball.html',
+  'contact.html',
   'padel.html',
+  'privacy.html',
   'squash.html',
   'table-tennis.html',
   'tennis.html',
   'volleyball.html',
+  'rules/badminton.html',
+  'rules/basketball.html',
+  'rules/padel.html',
+  'rules/squash.html',
+  'rules/table-tennis.html',
+  'rules/tennis.html',
+  'rules/volleyball.html',
   'src/app.js',
-  'src/components/AdBanner.js',
+  'src/components/AdSlot.js',
   'src/components/Buttons.js',
   'src/components/CourtCard.js',
   'src/components/CourtDashboard.js',
@@ -97,18 +107,25 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// A page address with no file extension (/, /padel, /table-tennis) is the app shell.
-const isShellPath = p => p === '/' || !/\.[a-z0-9]+$/i.test(p);
+// A page address with no file extension (/, /padel, /table-tennis) is the app shell, EXCEPT the static pages
+// (/about, /privacy, /contact, /rules/<sport>): those are real HTML files and must not be answered with the app.
+const STATIC_PAGE = /^\/(about|privacy|contact|rules\/[a-z-]+)\/?$/;
+const isShellPath = p => !STATIC_PAGE.test(p) && (p === '/' || !/\.[a-z0-9]+$/i.test(p));
+const staticFile = p => { const m = STATIC_PAGE.exec(p); return m ? '/' + m[1] + '.html' : null; };
 
 // Same-origin: answer from the cache instantly and refresh it in the background (so updates arrive on the next load).
-// Cross-origin requests (ads, analytics, Google sign-in) are left alone: offline they simply fail and never block scoring.
+// Left completely alone (the browser handles them, the service worker never sees a response): every cross-origin request
+// (Google AdSense / DoubleClick ad domains, analytics, sign-in) and /ads.txt, which must always come fresh from the server.
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+  if (url.pathname === '/ads.txt') return;
   const shell = e.request.mode === 'navigate' && isShellPath(url.pathname);
+  const file = e.request.mode === 'navigate' ? staticFile(url.pathname) : null;      // /privacy -> /privacy.html
+  const key = shell ? SHELL : file || e.request;
   e.respondWith(caches.open(CACHE).then(cache =>
-    (shell ? cache.match(SHELL) : cache.match(e.request, { ignoreSearch: true })).then(hit => {
-      const net = fetch(shell ? SHELL : e.request).then(res => { if (res.ok) cache.put(shell ? SHELL : e.request, res.clone()); return res; }).catch(() => hit);
+    (shell || file ? cache.match(key) : cache.match(e.request, { ignoreSearch: true })).then(hit => {
+      const net = fetch(key).then(res => { if (res.ok) cache.put(key, res.clone()); return res; }).catch(() => hit);
       return hit || net;
     })));
 });

@@ -1,4 +1,4 @@
-// The tournament formats ScoreTracker offers. This is the single place that describes them: the chooser screen,
+// The tournament formats DuelPoin offers. This is the single place that describes them: the chooser screen,
 // the explanation pop-ups and (later) the setup screens all read from here.
 //
 //   available:  false  -> shown as "Coming soon" (or hidden when hidden: true)

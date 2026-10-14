@@ -4,6 +4,7 @@ import { sportInfo, sportOrder } from './logic/sportRules.js';
 import { sportFromPath, captureSource, seoTitle } from './logic/deepLinks.js';
 import { holdAwake, releaseAwake } from './logic/wakeLock.js';
 import { openFeedback } from './components/FeedbackModal.js';
+import { AdSlot } from './components/AdSlot.js';
 import { snoozeFeedback, countFinishedMatch, shouldShowRating, flushQueue } from './logic/feedbackLogic.js';
 import { endManually, reopen, rematch, quickName } from './logic/quickMatch.js';
 import { shareResult } from './logic/shareResult.js';
@@ -109,6 +110,23 @@ function initialScreen() {
   return 'sports';
 }
 
+// Where an ad may appear (see AdSlot.js): the sport list, the match setup screens and the match / tournament results.
+// The live scoring screens (quick, tournPlay, courtPlay) are deliberately not here.
+const AD_SCREENS = { sports: 'home', quickSetup: 'setup', tournSetup: 'setup', courtSetup: 'setup', quickSummary: 'summary', tournSummary: 'summary' };
+
+// An ad never squeezes a screen that is laid out to fit the viewport: if the screen plus the ad don't fit (a short phone),
+// the ad is simply not shown there, so no button is ever cut off or pushed under it.
+function fitAd() {
+  const ad = app.querySelector('.ad-slot');
+  if (!ad) return;
+  ad.style.display = '';
+  if (FIT_SCREENS.indexOf(nav) < 0) return;                    // setup screens scroll normally, so the ad just sits at the end
+  const clipped = app.scrollHeight > app.clientHeight + 1 || Array.from(app.children).some(c => c !== ad && c.scrollHeight > c.clientHeight + 1);
+  if (clipped) ad.style.display = 'none';
+}
+let resizeTimer = null;
+window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(fitAd, 150); });
+
 // Can this screen be shown right now? (Used when the phone's Back/Forward lands on an older history entry.)
 function canShow(s) {
   if (s === 'quick') return !!quick && quick.status === 'playing';
@@ -167,7 +185,7 @@ window.addEventListener('popstate', e => {
 });
 
 // ---------- shell ----------
-// home: the sport menu shows the ScoreTracker wordmark instead of a back button + title
+// home: the sport menu shows the DuelPoin wordmark instead of a back button + title
 // (the profile menu still leads back to sign-in).
 function header(title, onBack, home) {
   return Header({
@@ -210,6 +228,8 @@ function render() {
   document.body.classList.toggle('fit-screen', FIT_SCREENS.indexOf(nav) >= 0);
   clear(app);
   screens[nav]().forEach(n => app.append(n));
+  const ad = AD_SCREENS[nav] ? AdSlot(AD_SCREENS[nav]) : null;           // ads: only these screens, and nothing at all while ads are off
+  if (ad) { app.append(ad); fitAd(); }
   if (isScoring()) holdAwake(); else releaseAwake();
   if (refocusAdd) {
     refocusAdd = false;

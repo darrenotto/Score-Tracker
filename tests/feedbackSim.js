@@ -37,9 +37,9 @@ export async function run() {
   check(keys.every(k => k in p) && Object.keys(p).length === keys.length, 'payload has exactly the PRD fields');
   check(p.rating === 4 && p.topics.join() === 'Scoring' && p.comment === 'Love it!' && p.email === 'me@x.com' && p.consent_to_feature === false, 'payload values (unknown topics dropped, text trimmed, consent off by default)');
   check(p.source === 'result_screen' && p.sport === 'badminton' && p.matches_finished === 5 && p.timestamp === new Date(clock).toISOString(), 'source, sport, count, timestamp');
-  check(p._subject === 'ScoreTracker feedback ★4 — badminton', 'subject: ' + p._subject);
+  check(p._subject === 'DuelPoin feedback ★4 — badminton', 'subject: ' + p._subject);
   check(buildPayload({ rating: 0, comment: 'x'.repeat(2000) }, { sport: 'padel' }).comment.length === COMMENT_MAX, 'comment capped at 1000');
-  check(buildPayload({ rating: 0, comment: 'abc' }, { sport: '' })._subject === 'ScoreTracker feedback' && buildPayload({ rating: 0, comment: 'abc' }, {}).rating === null, 'no rating, no sport');
+  check(buildPayload({ rating: 0, comment: 'abc' }, { sport: '' })._subject === 'DuelPoin feedback' && buildPayload({ rating: 0, comment: 'abc' }, {}).rating === null, 'no rating, no sport');
 
   // --- sending ---
   let r = await sendFeedback(form, { source: 'home_card', sport: 'tennis' });

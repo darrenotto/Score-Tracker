@@ -6,7 +6,7 @@ import { openLightbox } from './PhotoGallery.js';
 // Portrait stacks hero + actions; landscape puts them side by side (CSS: .qm-win).
 // o: { label, name, players?, side: 'A'|'B', score, meta?, series?,
 //      sideTop? (extra node above the actions, e.g. a results list), photos?[], onDeletePhoto?(i),
-//      rating? { onRate(n) } (a 'How did ScoreTracker do today?' star row under the meta line),
+//      rating? { onRate(n) } (a 'How did DuelPoin do today?' star row under the meta line),
 //      primary: { label, icon, onClick }, secondary?: [{ label, icon, onClick }], toggle?: { label, checked, onChange(bool) }, link?: { label, onClick } }
 // Five stars: tapping star N fills 1..N and hands N to onRate (the app opens the feedback form with it pre-selected).
 function ratingRow(onRate) {
@@ -14,7 +14,7 @@ function ratingRow(onRate) {
     type: 'button', class: 'qm-rate-star', 'aria-label': 'Rate ' + n + ' out of 5',
     onclick: () => { stars.forEach((b, i) => b.classList.toggle('on', i < n)); onRate(n); },
   }, icon('star', 22)));
-  return h('div', { class: 'qm-rate' }, h('div', { class: 'qm-rate-prompt' }, 'How did ScoreTracker do today?'), h('div', { class: 'qm-rate-stars' }, stars));
+  return h('div', { class: 'qm-rate' }, h('div', { class: 'qm-rate-prompt' }, 'How did DuelPoin do today?'), h('div', { class: 'qm-rate-stars' }, stars));
 }
 
 export function WinnerView(o) {

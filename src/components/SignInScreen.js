@@ -25,7 +25,7 @@ export function SignInScreen(o) {
   return h('div', { class: 'screen signin' },
     h('div', { class: 'brand' },
       h('div', { class: 'logo', 'aria-hidden': 'true' }, '🏸'),
-      h('h1', {}, 'ScoreTracker'),
+      h('h1', {}, 'DuelPoin'),
       h('p', { class: 'tagline' }, 'Keep score. Stay focused. Enjoy the game.')),
     h('div', { class: 'signin-actions' },
       signedIn ? h('p', { class: 'hi' }, 'Hi, ' + u.name + ' 👋') : null,

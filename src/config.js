@@ -1,8 +1,7 @@
 // One place for the settings you may want to change when you deploy.
 
-// The public address of the site, used on share cards and in shared links (e.g. 'https://scoretracker.example.com').
-// Leave it empty to use whatever address the app is running at; on localhost a placeholder is shown instead.
-export const SITE_URL = '';
+// The public address of the site, used on share cards and in shared links. Always the real domain.
+export const SITE_URL = 'https://duelpoin.com';
 
 // Google Analytics 4 measurement ID (Admin > Data streams > your web stream). While it is the placeholder, analytics are off.
 export const GA_MEASUREMENT_ID = 'G-XXXXXXX';
@@ -14,15 +13,22 @@ export const FEEDBACK_ENDPOINT = 'https://formspree.io/f/xeaeapjd';
 // Sent with every feedback message.
 export const APP_VERSION = '1.0';
 
-const PLACEHOLDER_SITE = 'https://your-site.vercel.app';
+// ---------- Google AdSense ----------
+// Your publisher ID (AdSense > Account > Settings). After changing it run `python tools/make-pages.py`: that writes the Google
+// script into the <head> of every page and the matching line into /ads.txt.
+export const ADSENSE_PUB_ID = 'ca-pub-XXXXXXXXXXXXXXXX';
+// The master switch. While false nothing is drawn and the ad slots take zero space.
+export const ADS_ENABLED = false;
+// One AdSense "ad unit" ID per place (AdSense > Ads > By ad unit). An empty ID keeps that place free of ads.
+// Ads only ever appear on: home (sport selection), setup (match setup screens), summary (match + tournament results).
+// There are no slots on the live scoring screens.
+export const ADSENSE_SLOTS = { home: '', setup: '', summary: '' };
 
 export function siteUrl() {
-  if (SITE_URL) return SITE_URL.replace(/\/+$/, '');
-  const o = typeof location !== 'undefined' ? location.origin : '';
-  return /^https?:\/\/(localhost|127\.|\[::1\]|192\.168\.|10\.)/.test(o) || !o ? PLACEHOLDER_SITE : o;
+  return SITE_URL.replace(/\/+$/, '');
 }
 
-// "scoretracker.example.com" — the address without https://, for the footer of the share card.
+// "duelpoin.com" — the address without https://, for the footer of the share card.
 export const siteHost = () => siteUrl().replace(/^https?:\/\//, '');
 
 // The link that goes with every shared result; ?src=share tells us which users arrived through a share.

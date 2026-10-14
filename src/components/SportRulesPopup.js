@@ -1,5 +1,6 @@
 import { h, openModalClass } from '../dom.js';
 import { sportInfo } from '../logic/sportRules.js';
+import { pathForSport } from '../logic/deepLinks.js';
 
 // Scrollable rules sheet. Opened only on request (the "?" on the scoring screen and on each sport card), never automatically.
 // o: { sport } — plus, optionally, { onQuick(), onTournament(), onCourts() } to show the mode choice in the footer
@@ -14,7 +15,8 @@ export function SportRulesPopup(o) {
       h('h4', {}, info.icon + ' ' + s.title),
       h('ul', {}, s.points.map(p => h('li', {}, p))))),
     h('div', { class: 'app-note' }, h('strong', {}, 'In this app: '), info.app),
-    h('p', { class: 'muted small' }, 'A general summary — check your league or club for local rules.'));
+    h('p', { class: 'muted small' }, 'A general summary — check your league or club for local rules. ',
+      h('a', { href: '/rules' + pathForSport(o.sport), target: '_blank', rel: 'noopener' }, 'Read the full ' + info.name.toLowerCase() + ' rules page')));
 
   m = openModalClass('rules',
     h('div', { class: 'rules-head' },

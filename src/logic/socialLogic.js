@@ -162,5 +162,5 @@ export function shareText(s) {
   const how = s.format === 'singles' ? ' pts' : 'W';
   return '🏆 ' + s.name + ' (Social)\n' +
     top.map(r => r.rank + '. ' + r.name + ' ' + (s.format === 'singles' ? r.pf + how : r.wins + how + ' · ' + r.pf + ' pts')).join('\n') +
-    '\n— ScoreTracker';
+    '\n— DuelPoin';
 }

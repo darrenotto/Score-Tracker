@@ -19,7 +19,7 @@ export function shareText(t) {
   const top = standings(t).slice(0, 3);
   return '🏆 ' + t.name + ' (' + sports[t.sport].name + ')\n' +
     top.map((r, i) => (i + 1) + '. ' + r.name + ' ' + r.wins + 'W-' + r.losses + 'L').join('\n') +
-    '\n' + t.matchHistory.filter(m => m.status === 'completed').length + ' matches played — ScoreTracker';
+    '\n' + t.matchHistory.filter(m => m.status === 'completed').length + ' matches played — DuelPoin';
 }
 
 // Session complete: standings first (that's what people want), the match list and photos below.

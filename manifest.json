@@ -1,6 +1,6 @@
 {
-  "name": "ScoreTracker",
-  "short_name": "ScoreTracker",
+  "name": "DuelPoin",
+  "short_name": "DuelPoin",
   "description": "Free score keeper for badminton, padel, tennis and more. Tap, tap, done. No sign-up.",
   "id": "/",
   "start_url": "/",

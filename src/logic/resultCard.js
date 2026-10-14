@@ -1,8 +1,8 @@
 // Draws the shareable result card (1080x1350, portrait: works for WhatsApp and Instagram stories) on a <canvas>.
-// Big score, high contrast, readable at thumbnail size. Always ends with the "Scored with ScoreTracker" footer.
+// Big score, high contrast, readable at thumbnail size. Always ends with the "Scored with DuelPoin" footer.
 //
 // d: { icon (emoji), sportName, nameA, nameB, winner: 'A'|'B', scoreA, scoreB, detail? (e.g. "Set 1 · 7–6 (5)"),
-//      date (ms), photo? (data URL), host (e.g. "scoretracker.example.com") }
+//      date (ms), photo? (data URL), host (e.g. "duelpoin.com") }
 export const CARD_W = 1080, CARD_H = 1350;
 
 const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
@@ -115,7 +115,7 @@ export async function drawResultCard(d) {
   // footer, always present
   x.fillStyle = 'rgba(255,255,255,.14)'; x.fillRect(64, 1205, CARD_W - 128, 2);
   x.font = '700 36px ' + FONT; x.fillStyle = C.text;
-  const footer = 'Scored with ScoreTracker' + (d.host ? ' · ' + d.host : '');
+  const footer = 'Scored with DuelPoin' + (d.host ? ' · ' + d.host : '');
   x.fillText(fitText(x, footer, CARD_W - 128), CARD_W / 2, 1275);
 
   return canvas;
