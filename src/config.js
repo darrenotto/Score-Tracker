@@ -14,9 +14,9 @@ export const FEEDBACK_ENDPOINT = 'https://formspree.io/f/xeaeapjd';
 export const APP_VERSION = '1.0';
 
 // ---------- Google AdSense ----------
-// Your publisher ID (AdSense > Account > Settings), like 'ca-pub-1234567890123456'. Empty for now: no ad script, no ads.txt.
+// Your publisher ID (AdSense > Account > Settings), like 'ca-pub-1234567890123456'. The ad script is in every page's <head> and /ads.txt exists, but ads stay off until ADS_ENABLED is true.
 // After setting it run `python tools/make-pages.py`: that writes the Google script into the <head> of every page and creates /ads.txt.
-export const ADSENSE_PUB_ID = '';
+export const ADSENSE_PUB_ID = 'ca-pub-4304507228913680';
 // The master switch. While false nothing is drawn and the ad slots take zero space.
 export const ADS_ENABLED = false;
 // One AdSense "ad unit" ID per place (AdSense > Ads > By ad unit). An empty ID keeps that place free of ads.

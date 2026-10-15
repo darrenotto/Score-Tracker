@@ -88,7 +88,8 @@ export async function run() {
   check(sportOrder.every(k => rulesIndex.querySelector('a[href="/rules/' + SLUGS[k] + '"]')), '/rules lists every sport');
 
   // ---- files at the root ----
-  check(!(await text('/ads.txt')).ok, 'no ads.txt yet (no publisher ID)');
+  const ads = await text('/ads.txt');
+  check(ads.ok && ads.body.trim() === 'google.com, ' + ADSENSE_PUB_ID.replace('ca-', '') + ', DIRECT, f08c47fec0942fa0', 'ads.txt: exactly one line with the publisher ID (no ca- prefix): ' + ads.body.trim());
   const robots = await text('/robots.txt'), map = await text('/sitemap.xml');
   check(robots.ok && /Sitemap: https:\/\/duelpoin\.com\/sitemap\.xml/.test(robots.body), 'robots.txt points at the sitemap');
   check(map.ok && pages.every(p => map.body.indexOf('<loc>https://duelpoin.com' + p + '</loc>') >= 0 || p === '/' && map.body.indexOf('<loc>https://duelpoin.com/</loc>') >= 0), 'sitemap lists every page');
@@ -124,9 +125,11 @@ export async function run() {
   // ---- ads: off means nothing at all ----
   check(ADS_ENABLED === false && adsLive() === false, 'ADS_ENABLED is false');
   check(['home', 'setup', 'summary', 'quick', 'whatever'].every(k => AdSlot(k) === null), 'AdSlot returns nothing for every place while ads are off');
-  check(ADSENSE_PUB_ID === '' && ['home', 'setup', 'summary'].every(k => k in ADSENSE_SLOTS) && !('quick' in ADSENSE_SLOTS) && !('scoring' in ADSENSE_SLOTS), 'config: empty pub ID, slots for home/setup/summary only (none for scoring)');
+  check(/^ca-pub-\d{16}$/.test(ADSENSE_PUB_ID) && ['home', 'setup', 'summary'].every(k => k in ADSENSE_SLOTS) && !('quick' in ADSENSE_SLOTS) && !('scoring' in ADSENSE_SLOTS), 'config: pub ID set, slots for home/setup/summary only (none for scoring)');
   const index = (await text('/')).body;
   const real = /^ca-pub-\d{10,}$/.test(ADSENSE_PUB_ID);
+  check(real, 'the publisher ID is a real one');
+  for (const p of pages) { const h = (await text(p)).body; const i = h.indexOf('pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + ADSENSE_PUB_ID); check(i > 0 && i < h.indexOf('</head>') && /<script async src="https:\/\/pagead2[^>]*crossorigin="anonymous"><\/script>/.test(h), p + ': AdSense script is in <head>'); }
   check(real === /pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js\?client=/.test(index), 'the AdSense script is in <head> exactly when the pub ID is real');
 
   // ---- addresses ----
