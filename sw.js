@@ -1,7 +1,7 @@
 // Offline-first service worker. Everything needed to start and play a match is pre-cached on install, so after
 // one online visit the app (and every sport deep link such as /padel) loads with no signal.
 // Bump CACHE whenever a file changes: old caches are deleted on activate.
-const CACHE = 'duelpoin-v2';
+const CACHE = 'duelpoin-v3';
 const SHELL = 'index.html';
 const ASSETS = [
   SHELL,
@@ -100,8 +100,21 @@ const ASSETS = [
   'src/logic/wakeLock.js',
 ];
 
+// A response that came through a redirect can't be handed to a page navigation: the browser turns it into a network error
+// (ERR_FAILED, "This site can't be reached"). Vercel's clean URLs redirect /index.html to / and /privacy.html to /privacy, so
+// every copy we store or serve is rebuilt as a plain, non-redirected response.
+async function plain(res) {
+  if (!res.redirected) return res;
+  return new Response(await res.blob(), { status: res.status, statusText: res.statusText, headers: res.headers });
+}
+
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  e.waitUntil(caches.open(CACHE).then(cache => Promise.all(ASSETS.map(async a => {
+    let res = await fetch(a).catch(() => null);
+    if (!res || !res.ok) res = await fetch(a);                      // one retry: a dropped connection on a weak network shouldn't fail the whole install
+    if (!res.ok) throw new Error(a + ' ' + res.status);
+    await cache.put(a, await plain(res));
+  }))));
   self.skipWaiting();
 });
 
@@ -129,7 +142,7 @@ self.addEventListener('fetch', e => {
   const key = shell ? SHELL : file || e.request;
   e.respondWith(caches.open(CACHE).then(cache =>
     (shell || file ? cache.match(key) : cache.match(e.request, { ignoreSearch: true })).then(hit => {
-      const net = fetch(key).then(res => { if (res.ok) cache.put(key, res.clone()); return res; }).catch(() => hit);
+      const net = fetch(key).then(async res => { if (!res.ok) return res; const copy = await plain(res); cache.put(key, copy.clone()); return copy; }).catch(() => hit);
       return hit || net;
     })));
 });

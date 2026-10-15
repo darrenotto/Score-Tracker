@@ -100,6 +100,14 @@ export async function run() {
   check(/const CACHE = 'duelpoin-v\d+'/.test(sw) && /caches\.delete/.test(sw) && !/scoretracker/i.test(sw), 'service worker: new cache name, deletes old caches');
   check(/pathname === '\/ads\.txt' \|\| url\.pathname\.indexOf\('\/_vercel\/insights\/'\) === 0\) return/.test(sw) && /url\.origin !== location\.origin\) return/.test(sw), 'service worker leaves /ads.txt, /_vercel/insights/ and every Google domain alone');
   check(!/googlesyndication|doubleclick/.test(sw), 'service worker never mentions or caches ad domains');
+  // clean URLs make Vercel answer /index.html and /privacy.html with a redirect; a redirected response given to a page navigation is a network error (ERR_FAILED)
+  check(/await plain\(res\)/.test(sw) && /plain\(res\)/.test(sw.slice(sw.indexOf('const net = fetch'))), 'service worker stores and serves only plain (non-redirected) copies');
+  const plainFn = new Function(sw.slice(sw.indexOf('async function plain'), sw.indexOf("self.addEventListener('install'")) + '; return plain;')();
+  const fake = { redirected: true, status: 200, statusText: 'OK', headers: new Headers({ 'content-type': 'text/html' }), blob: async () => new Blob(['hi']) };
+  const rebuilt = await plainFn(fake);
+  check(rebuilt instanceof Response && rebuilt.redirected === false && (await rebuilt.text()) === 'hi' && rebuilt.headers.get('content-type') === 'text/html', 'plain(): a redirected response is rebuilt without the redirect flag, body and headers kept');
+  const ordinary = { redirected: false };
+  check((await plainFn(ordinary)) === ordinary, 'plain(): an ordinary response is passed through untouched');
   check(['about.html', 'privacy.html', 'contact.html', 'terms.html', 'pages.css', 'rules/index.html', 'rules/padel.html', 'src/contactPage.js'].every(f => sw.indexOf("'" + f + "'") >= 0), 'static pages are cached for offline');
 
   // ---- vercel.json ----
