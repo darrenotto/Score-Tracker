@@ -24,7 +24,7 @@ import re
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 BRAND = "DuelPoin"
 DEFAULT_SITE = "https://duelpoin.com"
-CONTACT_EMAIL = "[YOUR EMAIL]"          # shown on the Contact page; replace with a real address and run this script again
+CONTACT_EMAIL = "duelpoin@gmail.com"      # shown on the Contact page (a mailto link); change it here and run this script again
 UPDATED = "14 October 2026"
 PLACEHOLDER_PUB = "ca-pub-XXXXXXXXXXXXXXXX"
 
