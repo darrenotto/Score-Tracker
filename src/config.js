@@ -18,7 +18,8 @@ export const APP_VERSION = '1.0';
 // After setting it run `python tools/make-pages.py`: that writes the Google script into the <head> of every page and creates /ads.txt.
 export const ADSENSE_PUB_ID = 'ca-pub-4304507228913680';
 // The master switch. While false nothing is drawn and the ad slots take zero space.
-export const ADS_ENABLED = false;
+// It is on now, but a place only shows an ad once its ad-unit ID below is filled in, so nothing is drawn yet.
+export const ADS_ENABLED = true;
 // One AdSense "ad unit" ID per place (AdSense > Ads > By ad unit). An empty ID keeps that place free of ads.
 // Ads only ever appear on: home (sport selection), setup (match setup screens), summary (match + tournament results).
 // There are no slots on the live scoring screens.

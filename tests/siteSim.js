@@ -123,8 +123,9 @@ export async function run() {
   check(['/badminton', '/volleyball', '/tennis', '/table-tennis', '/padel', '/basketball', '/squash'].every(p => (v.rewrites || []).some(r => r.source === p && r.destination === p + '.html')), 'vercel.json: sport rewrites');
 
   // ---- ads: off means nothing at all ----
-  check(ADS_ENABLED === false && adsLive() === false, 'ADS_ENABLED is false');
-  check(['home', 'setup', 'summary', 'quick', 'whatever'].every(k => AdSlot(k) === null), 'AdSlot returns nothing for every place while ads are off');
+  check(ADS_ENABLED === true && adsLive() === true, 'ADS_ENABLED is on and the publisher ID is valid');
+  check(Object.values(ADSENSE_SLOTS).every(v => v === ''), 'no ad-unit IDs are filled in yet');
+  check(['home', 'setup', 'summary', 'quick', 'whatever'].every(k => AdSlot(k) === null), 'AdSlot draws nothing for any place until its ad-unit ID is set (no empty boxes)');
   check(/^ca-pub-\d{16}$/.test(ADSENSE_PUB_ID) && ['home', 'setup', 'summary'].every(k => k in ADSENSE_SLOTS) && !('quick' in ADSENSE_SLOTS) && !('scoring' in ADSENSE_SLOTS), 'config: pub ID set, slots for home/setup/summary only (none for scoring)');
   const index = (await text('/')).body;
   const real = /^ca-pub-\d{10,}$/.test(ADSENSE_PUB_ID);

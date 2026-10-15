@@ -1,7 +1,7 @@
 // Offline-first service worker. Everything needed to start and play a match is pre-cached on install, so after
 // one online visit the app (and every sport deep link such as /padel) loads with no signal.
 // Bump CACHE whenever a file changes: old caches are deleted on activate.
-const CACHE = 'duelpoin-v4';
+const CACHE = 'duelpoin-v5';
 const SHELL = 'index.html';
 const ASSETS = [
   SHELL,
