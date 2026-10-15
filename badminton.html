@@ -31,9 +31,41 @@
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-  <main id="app"></main>
-  <footer class="foot"><a href="/privacy" target="_blank" rel="noopener">Privacy</a><span class="sep" aria-hidden="true">·</span><a href="/about" target="_blank" rel="noopener">About</a><span class="sep" aria-hidden="true">·</span><a href="/contact" target="_blank" rel="noopener">Contact</a></footer>
+  <main id="app"><!-- prerender:start (plain HTML for search engines and slow connections; the app replaces it when it starts) -->
+<div class="prerender">
+<h1>Badminton score keeper and rules</h1>
+<p>Free badminton scoreboard for casual games: tap to score, undo mistakes, share the result. No sign-up, works offline.</p>
+<h2>How to score</h2>
+<ul>
+<li>Rally scoring: every rally is a point, whoever served.</li>
+<li>First to 21 wins the game.</li>
+<li>At 20–20 you must win by 2. At 29–29 the next point wins (30 is the cap).</li>
+</ul>
+<h2>Service</h2>
+<ul>
+<li>Serve diagonally, underhand, with the shuttle struck below the waist.</li>
+<li>The side that won the last rally serves next.</li>
+<li>Serve from the right box when the server&#x27;s score is even, left when odd.</li>
+<li>Both feet stay still inside the box until the shuttle is hit.</li>
+</ul>
+<h2>In &amp; out</h2>
+<ul>
+<li>The line is in. Landing outside any line is out.</li>
+<li>A serve that clips the net and lands in the correct box is good.</li>
+</ul>
+<h2>Winning</h2>
+<ul>
+<li>Win the game with the 2-point lead (or hit 30).</li>
+<li>A match is usually best of 3 games — use Tournament mode for that.</li>
+</ul>
+<h2>Scoring badminton in DuelPoin</h2>
+<p>Tap a side each time that side wins a rally. The game ends automatically at 21 (win by 2, max 30). Optional: turn on &quot;Track who&#x27;s serving&quot; at setup to see the server and the box they serve from.</p>
+<p><a href="/rules/badminton">Read the full badminton rules page</a></p>
+<p>Loading the scoreboard…</p>
+</div>
+<!-- prerender:end --></main>
+  <footer class="foot"><a href="/rules" target="_blank" rel="noopener">Rules</a><span class="sep" aria-hidden="true">·</span><a href="/about" target="_blank" rel="noopener">About</a><span class="sep" aria-hidden="true">·</span><a href="/privacy" target="_blank" rel="noopener">Privacy</a><span class="sep" aria-hidden="true">·</span><a href="/terms" target="_blank" rel="noopener">Terms</a><span class="sep" aria-hidden="true">·</span><a href="/contact" target="_blank" rel="noopener">Contact</a></footer>
   <script type="module" src="/src/app.js"></script>
-  <noscript>DuelPoin needs JavaScript to keep score. <a href="/about">About DuelPoin</a> · <a href="/privacy">Privacy</a> · <a href="/contact">Contact</a></noscript>
+  <noscript>DuelPoin needs JavaScript to keep score. <a href="/about">About DuelPoin</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a></noscript>
 </body>
 </html>

@@ -782,3 +782,12 @@ button.trd-in { min-height: 44px; }
   .qm-win-actions { gap: 6px; }
   .qm-act, .qm-act.primary { min-height: 46px; }
 }
+
+/* ---------- plain-HTML content inside the app's <main> until the app starts (also what search engines read) ---------- */
+.prerender { padding: var(--sp-2) 0; line-height: 1.5; }
+.prerender h1 { font-size: 24px; line-height: 1.2; margin: 0 0 8px; }
+.prerender h2 { font-size: 17px; margin: 16px 0 4px; }
+.prerender ul { padding-left: 20px; margin: 4px 0; }
+.prerender a { color: var(--primary-ink); }
+/* footer links (Rules / About / Privacy / Terms / Contact): not on the live scoring screens */
+.no-foot .foot { display: none; }

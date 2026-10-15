@@ -31,9 +31,24 @@
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-  <main id="app"></main>
-  <footer class="foot"><a href="/privacy" target="_blank" rel="noopener">Privacy</a><span class="sep" aria-hidden="true">·</span><a href="/about" target="_blank" rel="noopener">About</a><span class="sep" aria-hidden="true">·</span><a href="/contact" target="_blank" rel="noopener">Contact</a></footer>
+  <main id="app"><!-- prerender:start (plain HTML for search engines and slow connections; the app replaces it when it starts) -->
+<div class="prerender">
+<h1>DuelPoin: free score keeper for casual games</h1>
+<p>Stop arguing about the score. DuelPoin is a free, no-sign-up scoreboard for badminton, padel, tennis, volleyball, table tennis, squash and basketball. Tap the side that wins each point, undo mistakes, share the result. It works offline and keeps your matches on your own device.</p>
+<ul>
+<li><a href="/badminton">Badminton scoreboard</a> · <a href="/rules/badminton">Badminton rules</a>: Tap to score to 21, win by 2 (max 30).</li>
+<li><a href="/volleyball">Volleyball scoreboard</a> · <a href="/rules/volleyball">Volleyball rules</a>: Tap to score to 25, win by 2.</li>
+<li><a href="/tennis">Tennis scoreboard</a> · <a href="/rules/tennis">Tennis rules</a>: Points, games and tiebreaks, with standard deuce or golden point.</li>
+<li><a href="/table-tennis">Table Tennis scoreboard</a> · <a href="/rules/table-tennis">Table Tennis rules</a>: Tap to score to 11, win by 2.</li>
+<li><a href="/padel">Padel scoreboard</a> · <a href="/rules/padel">Padel rules</a>: Points, games and tiebreaks, with golden point or advantage.</li>
+<li><a href="/basketball">Basketball scoreboard</a> · <a href="/rules/basketball">Basketball rules</a>: Count points to any target you choose.</li>
+<li><a href="/squash">Squash scoreboard</a> · <a href="/rules/squash">Squash rules</a>: Tap to score to 11 or 15, win by 2.</li>
+</ul>
+<p>Loading the scoreboard…</p>
+</div>
+<!-- prerender:end --></main>
+  <footer class="foot"><a href="/rules" target="_blank" rel="noopener">Rules</a><span class="sep" aria-hidden="true">·</span><a href="/about" target="_blank" rel="noopener">About</a><span class="sep" aria-hidden="true">·</span><a href="/privacy" target="_blank" rel="noopener">Privacy</a><span class="sep" aria-hidden="true">·</span><a href="/terms" target="_blank" rel="noopener">Terms</a><span class="sep" aria-hidden="true">·</span><a href="/contact" target="_blank" rel="noopener">Contact</a></footer>
   <script type="module" src="/src/app.js"></script>
-  <noscript>DuelPoin needs JavaScript to keep score. <a href="/about">About DuelPoin</a> · <a href="/privacy">Privacy</a> · <a href="/contact">Contact</a></noscript>
+  <noscript>DuelPoin needs JavaScript to keep score. <a href="/about">About DuelPoin</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a></noscript>
 </body>
 </html>

@@ -1,7 +1,7 @@
 // Offline-first service worker. Everything needed to start and play a match is pre-cached on install, so after
 // one online visit the app (and every sport deep link such as /padel) loads with no signal.
 // Bump CACHE whenever a file changes: old caches are deleted on activate.
-const CACHE = 'duelpoin-v1';
+const CACHE = 'duelpoin-v2';
 const SHELL = 'index.html';
 const ASSETS = [
   SHELL,
@@ -20,9 +20,11 @@ const ASSETS = [
   'squash.html',
   'table-tennis.html',
   'tennis.html',
+  'terms.html',
   'volleyball.html',
   'rules/badminton.html',
   'rules/basketball.html',
+  'rules/index.html',
   'rules/padel.html',
   'rules/squash.html',
   'rules/table-tennis.html',
@@ -67,6 +69,7 @@ const ASSETS = [
   'src/components/TournamentSummary.js',
   'src/components/WinnerView.js',
   'src/config.js',
+  'src/contactPage.js',
   'src/dom.js',
   'src/logic/analytics.js',
   'src/logic/authLogic.js',
@@ -109,13 +112,14 @@ self.addEventListener('activate', e => {
 
 // A page address with no file extension (/, /padel, /table-tennis) is the app shell, EXCEPT the static pages
 // (/about, /privacy, /contact, /rules/<sport>): those are real HTML files and must not be answered with the app.
-const STATIC_PAGE = /^\/(about|privacy|contact|rules\/[a-z-]+)\/?$/;
+const STATIC_PAGE = /^\/(about|privacy|contact|terms|rules|rules\/[a-z-]+)\/?$/;
 const isShellPath = p => !STATIC_PAGE.test(p) && (p === '/' || !/\.[a-z0-9]+$/i.test(p));
-const staticFile = p => { const m = STATIC_PAGE.exec(p); return m ? '/' + m[1] + '.html' : null; };
+const staticFile = p => { const m = STATIC_PAGE.exec(p); return m ? '/' + m[1] + (m[1] === 'rules' ? '/index.html' : '.html') : null; };
 
 // Same-origin: answer from the cache instantly and refresh it in the background (so updates arrive on the next load).
 // Left completely alone (the browser handles them, the service worker never sees a response): every cross-origin request
-// (Google AdSense / DoubleClick ad domains, analytics, sign-in) and /ads.txt, which must always come fresh from the server.
+// (Google AdSense / DoubleClick ad domains, formspree.io, analytics, sign-in), /ads.txt and /_vercel/insights/, which must always come
+// fresh from the server.
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;

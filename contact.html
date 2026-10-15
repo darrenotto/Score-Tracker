@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#F4F7FB">
 <title>Contact DuelPoin</title>
-<meta name="description" content="How to reach the DuelPoin team: email, or send feedback from inside the app.">
+<meta name="description" content="Contact the DuelPoin team: send feedback, report a bug or ask for a house-rule or a sport.">
 <link rel="canonical" href="https://duelpoin.com/contact">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="DuelPoin">
 <meta property="og:title" content="Contact DuelPoin">
-<meta property="og:description" content="How to reach the DuelPoin team: email, or send feedback from inside the app.">
+<meta property="og:description" content="Contact the DuelPoin team: send feedback, report a bug or ask for a house-rule or a sport.">
 <meta property="og:url" content="https://duelpoin.com/contact">
 <meta property="og:image" content="https://duelpoin.com/og-image.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -27,14 +27,29 @@
 <header class="site-head"><a class="brand" href="/">Duel<b>Poin</b></a><a class="cta" href="/">Open the scoreboard</a></header>
 <main class="doc">
 <h1>Contact DuelPoin</h1>
-<p>We read every message.</p>
-<h2>Email</h2>
-<p><a href="mailto:duelpoin@gmail.com">duelpoin@gmail.com</a></p>
-<h2>Quickest way: feedback in the app</h2>
-<p>Open <a href="/">DuelPoin</a> and tap <strong>"Tell me what you think"</strong> at the bottom of the home screen. Ideas, bugs or a sport you want: it takes about ten seconds.</p>
-<h2>Privacy questions</h2>
-<p>See our <a href="/privacy">Privacy Policy</a>.</p>
+<p>We read every message. Write to us about:</p>
+<ul>
+<li><strong>Feedback</strong>: what you like and what could be better</li>
+<li><strong>Bugs</strong>: something that did not work</li>
+<li><strong>House-rule requests</strong>: a scoring rule or a sport you want to see</li>
+</ul>
+<form id="contact-form" class="contact-form" action="https://formspree.io/f/xeaeapjd" method="POST">
+  <label for="c-topic">What is it about?</label>
+  <select id="c-topic" name="topic">
+    <option>Feedback</option><option>Bug</option><option>House-rule request</option><option>Something else</option>
+  </select>
+  <label for="c-message">Your message</label>
+  <textarea id="c-message" name="message" rows="6" maxlength="2000" required minlength="3"></textarea>
+  <label for="c-email">Your email (optional, only so we can reply)</label>
+  <input id="c-email" name="email" type="email" autocomplete="email">
+  <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+  <input type="hidden" name="_subject" value="DuelPoin contact form">
+  <button type="submit" class="button">Send message</button>
+  <p id="contact-status" role="status" class="status"></p>
+</form>
+<p class="meta">Messages are delivered by Formspree. See the <a href="/privacy">Privacy Policy</a>.</p>
 </main>
-<footer class="site-foot"><a href="/privacy">Privacy</a> <span aria-hidden="true">·</span> <a href="/about">About</a> <span aria-hidden="true">·</span> <a href="/contact">Contact</a><div>© DuelPoin</div></footer>
+<footer class="site-foot"><a href="/rules">Rules</a> <span aria-hidden="true">·</span> <a href="/about">About</a> <span aria-hidden="true">·</span> <a href="/privacy">Privacy</a> <span aria-hidden="true">·</span> <a href="/terms">Terms</a> <span aria-hidden="true">·</span> <a href="/contact">Contact</a><div>© DuelPoin</div></footer>
+<script type="module" src="/src/contactPage.js"></script>
 </body>
 </html>

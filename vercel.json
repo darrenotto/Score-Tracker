@@ -16,6 +16,6 @@
     { "source": "/padel", "destination": "/padel.html" },
     { "source": "/basketball", "destination": "/basketball.html" },
     { "source": "/squash", "destination": "/squash.html" },
-    { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
+    { "source": "/((?!(?:about|privacy|contact|terms|rules)(?:/|$))(?!.*\\.).*)", "destination": "/index.html" }
   ]
 }

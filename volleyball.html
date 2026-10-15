@@ -31,9 +31,42 @@
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-  <main id="app"></main>
-  <footer class="foot"><a href="/privacy" target="_blank" rel="noopener">Privacy</a><span class="sep" aria-hidden="true">·</span><a href="/about" target="_blank" rel="noopener">About</a><span class="sep" aria-hidden="true">·</span><a href="/contact" target="_blank" rel="noopener">Contact</a></footer>
+  <main id="app"><!-- prerender:start (plain HTML for search engines and slow connections; the app replaces it when it starts) -->
+<div class="prerender">
+<h1>Volleyball score keeper and rules</h1>
+<p>Free volleyball scoreboard for casual games: tap to score, undo mistakes, share the result. No sign-up, works offline.</p>
+<h2>How to score</h2>
+<ul>
+<li>Rally scoring: every rally is a point.</li>
+<li>First to 25 wins the set, but you must win by 2 (no cap).</li>
+<li>A deciding final set is often played to 15.</li>
+</ul>
+<h2>Service &amp; rotation</h2>
+<ul>
+<li>Serve from behind the end line; the same player serves until their side loses a rally.</li>
+<li>When a side wins the serve back, its players rotate one position clockwise.</li>
+</ul>
+<h2>Play</h2>
+<ul>
+<li>Each side gets at most 3 touches. The same player can&#x27;t hit twice in a row (a block doesn&#x27;t count).</li>
+<li>The ball must cross the net; touching the net during play is a fault.</li>
+</ul>
+<h2>In &amp; out</h2>
+<ul>
+<li>The line is in. Landing outside the lines is out.</li>
+</ul>
+<h2>Winning</h2>
+<ul>
+<li>Matches are best of 3 or 5 sets — use Tournament mode.</li>
+</ul>
+<h2>Scoring volleyball in DuelPoin</h2>
+<p>Each game is scored to 25, win by 2. The shorter 15-point deciding set is not automatic — use Custom/Basketball-style targets if you need it.</p>
+<p><a href="/rules/volleyball">Read the full volleyball rules page</a></p>
+<p>Loading the scoreboard…</p>
+</div>
+<!-- prerender:end --></main>
+  <footer class="foot"><a href="/rules" target="_blank" rel="noopener">Rules</a><span class="sep" aria-hidden="true">·</span><a href="/about" target="_blank" rel="noopener">About</a><span class="sep" aria-hidden="true">·</span><a href="/privacy" target="_blank" rel="noopener">Privacy</a><span class="sep" aria-hidden="true">·</span><a href="/terms" target="_blank" rel="noopener">Terms</a><span class="sep" aria-hidden="true">·</span><a href="/contact" target="_blank" rel="noopener">Contact</a></footer>
   <script type="module" src="/src/app.js"></script>
-  <noscript>DuelPoin needs JavaScript to keep score. <a href="/about">About DuelPoin</a> · <a href="/privacy">Privacy</a> · <a href="/contact">Contact</a></noscript>
+  <noscript>DuelPoin needs JavaScript to keep score. <a href="/about">About DuelPoin</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a></noscript>
 </body>
 </html>

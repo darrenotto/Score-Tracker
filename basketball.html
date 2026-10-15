@@ -31,9 +31,32 @@
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-  <main id="app"></main>
-  <footer class="foot"><a href="/privacy" target="_blank" rel="noopener">Privacy</a><span class="sep" aria-hidden="true">·</span><a href="/about" target="_blank" rel="noopener">About</a><span class="sep" aria-hidden="true">·</span><a href="/contact" target="_blank" rel="noopener">Contact</a></footer>
+  <main id="app"><!-- prerender:start (plain HTML for search engines and slow connections; the app replaces it when it starts) -->
+<div class="prerender">
+<h1>Basketball score keeper and rules</h1>
+<p>Free basketball scoreboard for casual games: tap to score, undo mistakes, share the result. No sign-up, works offline.</p>
+<h2>How to score</h2>
+<ul>
+<li>1 point for a free throw, 2 for a shot inside the arc, 3 for a shot beyond it.</li>
+<li>Casual games are often &quot;first to 11, 15 or 21&quot;, sometimes counting 1s and 2s only.</li>
+</ul>
+<h2>Play</h2>
+<ul>
+<li>Dribble to move; no carrying or double-dribbling.</li>
+<li>The ball is out when it touches the boundary or goes beyond it — the other team gets it.</li>
+</ul>
+<h2>Winning</h2>
+<ul>
+<li>First to the agreed score. Many pick-up games win by 1; agree this before you start.</li>
+</ul>
+<h2>Scoring basketball in DuelPoin</h2>
+<p>You set the target score. Tap once per point, so tap twice for a two-pointer. There is no win-by-2.</p>
+<p><a href="/rules/basketball">Read the full basketball rules page</a></p>
+<p>Loading the scoreboard…</p>
+</div>
+<!-- prerender:end --></main>
+  <footer class="foot"><a href="/rules" target="_blank" rel="noopener">Rules</a><span class="sep" aria-hidden="true">·</span><a href="/about" target="_blank" rel="noopener">About</a><span class="sep" aria-hidden="true">·</span><a href="/privacy" target="_blank" rel="noopener">Privacy</a><span class="sep" aria-hidden="true">·</span><a href="/terms" target="_blank" rel="noopener">Terms</a><span class="sep" aria-hidden="true">·</span><a href="/contact" target="_blank" rel="noopener">Contact</a></footer>
   <script type="module" src="/src/app.js"></script>
-  <noscript>DuelPoin needs JavaScript to keep score. <a href="/about">About DuelPoin</a> · <a href="/privacy">Privacy</a> · <a href="/contact">Contact</a></noscript>
+  <noscript>DuelPoin needs JavaScript to keep score. <a href="/about">About DuelPoin</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a></noscript>
 </body>
 </html>

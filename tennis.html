@@ -31,9 +31,39 @@
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-  <main id="app"></main>
-  <footer class="foot"><a href="/privacy" target="_blank" rel="noopener">Privacy</a><span class="sep" aria-hidden="true">·</span><a href="/about" target="_blank" rel="noopener">About</a><span class="sep" aria-hidden="true">·</span><a href="/contact" target="_blank" rel="noopener">Contact</a></footer>
+  <main id="app"><!-- prerender:start (plain HTML for search engines and slow connections; the app replaces it when it starts) -->
+<div class="prerender">
+<h1>Tennis score keeper and rules</h1>
+<p>Free tennis scoreboard for casual games: tap to score, undo mistakes, share the result. No sign-up, works offline.</p>
+<h2>How to score</h2>
+<ul>
+<li>Points in a game go 0, 15, 30, 40, then game.</li>
+<li>At 40–40 (deuce) you need two points in a row (advantage, then game).</li>
+<li>Usually first to 6 games wins a set, by 2 games (the app lets you pick 4 to 8).</li>
+<li>At 6–6 a tiebreak is played: first to 7 points, by 2, wins the set 7–6.</li>
+</ul>
+<h2>Service</h2>
+<ul>
+<li>Serve from behind the baseline, diagonally into the service box.</li>
+<li>You get two attempts; missing both is a double fault.</li>
+<li>Serve alternates each game.</li>
+</ul>
+<h2>In &amp; out</h2>
+<ul>
+<li>A ball touching the line is in. Beyond the lines is out.</li>
+</ul>
+<h2>Winning</h2>
+<ul>
+<li>Matches are usually best of 3 sets — use Tournament mode.</li>
+</ul>
+<h2>Scoring tennis in DuelPoin</h2>
+<p>Tap the side that wins each POINT. The app tracks 15/30/40, deuce, games and the tiebreak. At setup you can set your house rules: games per set (4 to 8, usually 6) and the deuce rule (standard deuce with advantage, or golden point: one deciding point at 40–40). Quick Match is one set; use Tournament and &quot;Best of 3 Sets&quot; for a full match. Optional: &quot;Track who&#x27;s serving&quot; shows the server and which side they serve from.</p>
+<p><a href="/rules/tennis">Read the full tennis rules page</a></p>
+<p>Loading the scoreboard…</p>
+</div>
+<!-- prerender:end --></main>
+  <footer class="foot"><a href="/rules" target="_blank" rel="noopener">Rules</a><span class="sep" aria-hidden="true">·</span><a href="/about" target="_blank" rel="noopener">About</a><span class="sep" aria-hidden="true">·</span><a href="/privacy" target="_blank" rel="noopener">Privacy</a><span class="sep" aria-hidden="true">·</span><a href="/terms" target="_blank" rel="noopener">Terms</a><span class="sep" aria-hidden="true">·</span><a href="/contact" target="_blank" rel="noopener">Contact</a></footer>
   <script type="module" src="/src/app.js"></script>
-  <noscript>DuelPoin needs JavaScript to keep score. <a href="/about">About DuelPoin</a> · <a href="/privacy">Privacy</a> · <a href="/contact">Contact</a></noscript>
+  <noscript>DuelPoin needs JavaScript to keep score. <a href="/about">About DuelPoin</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a></noscript>
 </body>
 </html>

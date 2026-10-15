@@ -114,6 +114,9 @@ function initialScreen() {
 // The live scoring screens (quick, tournPlay, courtPlay) are deliberately not here.
 const AD_SCREENS = { sports: 'home', quickSetup: 'setup', tournSetup: 'setup', courtSetup: 'setup', quickSummary: 'summary', tournSummary: 'summary' };
 
+// The footer (Rules / About / Privacy / Terms / Contact) shows on the menu, setup and result screens, not while scoring.
+const FOOT_SCREENS = ['signin', 'sports', 'quickSetup', 'tournMode', 'tournSetup', 'courtSetup', 'quickSummary', 'tournSummary', 'courtSummary'];
+
 // An ad never squeezes a screen that is laid out to fit the viewport: if the screen plus the ad don't fit (a short phone),
 // the ad is simply not shown there, so no button is ever cut off or pushed under it.
 function fitAd() {
@@ -228,6 +231,7 @@ function render() {
   document.body.classList.toggle('fit-screen', FIT_SCREENS.indexOf(nav) >= 0);
   clear(app);
   screens[nav]().forEach(n => app.append(n));
+  document.body.classList.toggle('no-foot', FOOT_SCREENS.indexOf(nav) < 0);   // footer links: never on the live scoring screens
   const ad = AD_SCREENS[nav] ? AdSlot(AD_SCREENS[nav]) : null;           // ads: only these screens, and nothing at all while ads are off
   if (ad) { app.append(ad); fitAd(); }
   if (isScoring()) holdAwake(); else releaseAwake();

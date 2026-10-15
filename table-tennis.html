@@ -31,9 +31,37 @@
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-  <main id="app"></main>
-  <footer class="foot"><a href="/privacy" target="_blank" rel="noopener">Privacy</a><span class="sep" aria-hidden="true">·</span><a href="/about" target="_blank" rel="noopener">About</a><span class="sep" aria-hidden="true">·</span><a href="/contact" target="_blank" rel="noopener">Contact</a></footer>
+  <main id="app"><!-- prerender:start (plain HTML for search engines and slow connections; the app replaces it when it starts) -->
+<div class="prerender">
+<h1>Table Tennis score keeper and rules</h1>
+<p>Free table tennis scoreboard for casual games: tap to score, undo mistakes, share the result. No sign-up, works offline.</p>
+<h2>How to score</h2>
+<ul>
+<li>A point is scored on every rally.</li>
+<li>First to 11 wins the game, by 2 (so 10–10 continues until someone leads by 2).</li>
+</ul>
+<h2>Service</h2>
+<ul>
+<li>Throw the ball up at least 16 cm from an open palm, then hit it so it bounces on your side, then the opponent&#x27;s.</li>
+<li>Serve changes every 2 points (every point after 10–10).</li>
+</ul>
+<h2>In &amp; out</h2>
+<ul>
+<li>The ball must land on the table top. The edge counts; the side of the table doesn&#x27;t.</li>
+<li>A serve touching the net and landing correctly is a let — replay it.</li>
+</ul>
+<h2>Winning</h2>
+<ul>
+<li>Matches are usually best of 5 or 7 games — use Tournament mode.</li>
+</ul>
+<h2>Scoring table tennis in DuelPoin</h2>
+<p>Tap a side each time it wins a rally. The game ends at 11, win by 2.</p>
+<p><a href="/rules/table-tennis">Read the full table tennis rules page</a></p>
+<p>Loading the scoreboard…</p>
+</div>
+<!-- prerender:end --></main>
+  <footer class="foot"><a href="/rules" target="_blank" rel="noopener">Rules</a><span class="sep" aria-hidden="true">·</span><a href="/about" target="_blank" rel="noopener">About</a><span class="sep" aria-hidden="true">·</span><a href="/privacy" target="_blank" rel="noopener">Privacy</a><span class="sep" aria-hidden="true">·</span><a href="/terms" target="_blank" rel="noopener">Terms</a><span class="sep" aria-hidden="true">·</span><a href="/contact" target="_blank" rel="noopener">Contact</a></footer>
   <script type="module" src="/src/app.js"></script>
-  <noscript>DuelPoin needs JavaScript to keep score. <a href="/about">About DuelPoin</a> · <a href="/privacy">Privacy</a> · <a href="/contact">Contact</a></noscript>
+  <noscript>DuelPoin needs JavaScript to keep score. <a href="/about">About DuelPoin</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a></noscript>
 </body>
 </html>
