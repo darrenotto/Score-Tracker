@@ -55,7 +55,7 @@ export async function run() {
     check(missing.length === 0, slug + ': every rule point is in the source (' + missing.length + ' missing: ' + (missing[0] || '').slice(0, 40) + ')');
     check(sportInfo[key].sections.every(s => plain.indexOf(s.title) >= 0), slug + ': all section headings');
     check(plain.indexOf(sportInfo[key].app.replace(/\s+/g, ' ')) >= 0, slug + ': the "in the app" note');
-    check(!!d.querySelector('h1') && !/<script/i.test(src.replace(/<script async src="https:\/\/pagead2[^>]*><\/script>/, '')), slug + ': a heading and no JavaScript needed');
+    check(!!d.querySelector('h1') && !/<script/i.test(src.replace(/<script async src="https:\/\/pagead2[^>]*><\/script>/, '').replace(/<script>\s*window\.va[\s\S]*?<\/script>/, '').replace(/<script defer src="\/_vercel\/insights\/script\.js"><\/script>/, '')), slug + ': a heading and no JavaScript needed');
     check([...d.querySelectorAll('a')].some(a => a.getAttribute('href') === '/' + slug), slug + ': links to the scoreboard');
   }
 
@@ -72,7 +72,7 @@ export async function run() {
   check(man.name === 'DuelPoin' && man.short_name === 'DuelPoin' && man.start_url === '/' && man.scope === '/', 'manifest name, short_name, start_url, scope');
   const sw = (await text('/sw.js')).body;
   check(/const CACHE = 'duelpoin-v\d+'/.test(sw) && /caches\.delete/.test(sw) && !/scoretracker/i.test(sw), 'service worker: new cache name, deletes old caches');
-  check(/pathname === '\/ads\.txt'\) return/.test(sw) && /url\.origin !== location\.origin\) return/.test(sw), 'service worker leaves /ads.txt and every Google domain alone');
+  check(/pathname === '\/ads\.txt' \|\| url\.pathname\.indexOf\('\/_vercel\/insights\/'\) === 0\) return/.test(sw) && /url\.origin !== location\.origin\) return/.test(sw), 'service worker leaves /ads.txt, /_vercel/insights/ and every Google domain alone');
   check(!/googlesyndication|doubleclick/.test(sw), 'service worker never mentions or caches ad domains');
   check(['about.html', 'privacy.html', 'contact.html', 'pages.css', 'rules/padel.html'].every(f => sw.indexOf("'" + f + "'") >= 0), 'static pages are cached for offline');
 

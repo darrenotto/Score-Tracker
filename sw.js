@@ -119,7 +119,7 @@ const staticFile = p => { const m = STATIC_PAGE.exec(p); return m ? '/' + m[1] +
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
-  if (url.pathname === '/ads.txt') return;
+  if (url.pathname === '/ads.txt' || url.pathname.indexOf('/_vercel/insights/') === 0) return;      // never cached or intercepted
   const shell = e.request.mode === 'navigate' && isShellPath(url.pathname);
   const file = e.request.mode === 'navigate' ? staticFile(url.pathname) : null;      // /privacy -> /privacy.html
   const key = shell ? SHELL : file || e.request;
